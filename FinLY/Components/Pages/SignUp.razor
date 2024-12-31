@@ -1,0 +1,98 @@
+﻿@page "/signup"
+@using FinLY.Models
+@using FinLY.Services
+@inject IUserServices UserServices
+@inject NavigationManager Navigation
+
+<div class="signup-container">
+    <div class="signup-left">
+        <div class="signupfinlyLogo">
+            <img src="./Images/finlylogo.png" alt="Finly Logo">
+            <h1>Connect With Us!</h1>
+            <p>Fill the form for Account!</p>
+            <span class="error-message">@errorMessage</span>
+        </div>
+        <div class="signup-form">
+            <form @onsubmit="HandleFormSubmit">
+                <label for="username">username:</label>
+                <input type="text" @bind="newUser.UserName" name="username" id="username" placeholder="Enter your Username" class="input-field">
+
+                <label for="password">password:</label>
+                <input type="password" @bind="newUser.Password" name="password" id="password" placeholder="Enter your password" class="input-field">
+
+                <label for="repeat_password">repeat password:</label>
+                <input type="password" @bind="repeatPassword" name="re-password" id="re-password" placeholder="Enter your re-password" class="input-field">
+
+                <label for="currency">Currency Type:</label>
+                <select @bind="newUser.Currency" name="currency" id="currency" class="input-field">
+                    <option value="" disabled selected>Select Currency</option>
+                    <option value="usd">US Dollar</option>
+                    <option value="npr">NPR</option>
+                    <option value="inr">INR</option>
+                    <option value="pound">Pound</option>
+                </select>
+
+                <button class="signup-button" type="submit">Sign Up</button>
+            </form>
+        </div>
+        <div class="logIn">
+            Already have an Account? &nbsp;<a href="/">Log In</a>
+        </div>
+    </div>
+    <div class="signup-right">
+        <div class="signup-illustration">
+            <div class="signup-copyrightlabel">© 2024 Dev. All Rights Reserved.</div>
+            <img src="./Images/loginillus.png" alt="Login illustration">
+        </div>
+    </div>
+</div>
+
+@code {
+    private Users newUser = new Users();
+    private string repeatPassword = string.Empty;
+    private string errorMessage = string.Empty;
+
+    private async Task HandleFormSubmit()
+    {
+        errorMessage = string.Empty;  
+        await SignUpUsers();
+    }
+
+    private async Task SignUpUsers()
+    {
+        if (string.IsNullOrEmpty(newUser.UserName) || string.IsNullOrEmpty(newUser.Password) || string.IsNullOrEmpty(newUser.Currency))
+        {
+            errorMessage = "All fields are required.";
+            return;
+        }
+
+        if (newUser.Password != repeatPassword)
+        {
+            errorMessage = "Passwords do not match.";
+            return;
+        }
+
+        try
+        {
+            var existingUsers = await UserServices.LoadUsersAsync();
+            if (existingUsers.Any(u => u.UserName == newUser.UserName))
+            {
+                errorMessage = "A user with this username already exists.";
+                return;
+            }
+
+            newUser.UserId = Guid.NewGuid();
+            await UserServices.SaveUserAsync(newUser);
+
+            errorMessage = null; 
+            newUser = new Users();
+            repeatPassword = string.Empty;
+
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred while adding the user: {ex.Message}";
+        }
+    }
+}
