@@ -18,6 +18,7 @@ namespace FinLY
             builder.Services.AddMauiBlazorWebView();
 
             builder.Services.AddSingleton<IUserServices, UserServices>();
+            builder.Services.AddSingleton<AuthenticationStateService >();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

@@ -91,3 +91,100 @@ h1:focus {
         padding-left: env(safe-area-inset-left);
     }
 }
+
+/*--------------NavBar Css----------------------*/
+.nav_sidebar {
+    height: 100%;
+    border: 5px solid black;
+    width: 300px;
+    padding: 20px;
+    margin: 20px;
+    background-color: #ffffff;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    margin-bottom: 20px;
+}
+
+    .logo img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .logo h1 {
+        margin-left: 30px;
+        margin-top: 10px;
+        font-size: 20px;
+        color: #333;
+    }
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 80px;
+    flex-grow: 1;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    color: #4ec2bb;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+    .nav-item:hover,
+    .nav-item.active {
+        background-color: #264267;
+        color: #4ec2bb;
+    }
+
+    .nav-item span {
+        margin-left: 10px;
+    }
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;  Ensures the buttons are aligned in the center vertically 
+}
+
+    .footer .export-button {
+        padding: 10px 20px;
+        border-radius: 5px;
+        color: #4ec2bb;
+        background-color: transparent;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+    }
+
+    .footer .left {
+        margin-right: 2px;  Pushes the "Export" button to the left 
+    }
+
+    .footer .right {
+        border: 2px solid rgb(180, 180, 180);
+        margin-left: 5px;  Pushes the "Log Out" button to the right 
+        box-sizing: border-box;  Ensures border is included within the button width 
+    }
+
+    .footer .export-button:hover {
+        background-color: #264267;
+        padding: 10px 20px;
+        color: #4ec2bb;
+    }

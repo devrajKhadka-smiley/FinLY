@@ -50,5 +50,17 @@ namespace FinLY.Services
 
             return users ?? new List<Users>();
         }
+
+        public bool VerifyPassword(string enteredPassword, string storedPasswordHash)
+        {
+            var enteredPasswordHash = HashPassword(enteredPassword);
+            return enteredPasswordHash == storedPasswordHash;
+        }
+
+        public async Task<Users> GetUserByUsernameAsync(string username)
+        {
+            var users = await LoadUsersAsync();
+            return users.FirstOrDefault(u => u.UserName == username);
+        }
     }
 }

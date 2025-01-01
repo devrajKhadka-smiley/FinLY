@@ -1,4 +1,12 @@
-﻿@page "/"
+﻿@page "/" 
+@using FinLY.Models
+@using FinLY.Services
+@inject IUserServices UserServices
+@inject NavigationManager Navigation
+@using System.Security.Cryptography
+@using System.Text
+@inject AuthenticationStateService AuthService
+
 
 <div class="login-container">
     <div class="login-left">
@@ -12,16 +20,16 @@
             <img src="./Images/finlylogo.png" alt="Finly Logo">
             <h1>Welcome Back!</h1>
             <p>Sign in to your account to continue</p>
+            <span class="error-message">@errorMessage</span>
         </div>
-       
-       
-        <div class="login-form">
-            <form>
-                <label for="username">Username:</label>
-                <input type="text" name="username" id="username" placeholder="Enter your Username" class="input-field">
 
-                <label for="username">Password:</label>
-                <input type="text" name="Password" id="username" placeholder="Enter your Password" class="input-field">
+        <div class="login-form">
+            <form @onsubmit="HandleFormSubmit">
+                <label for="username">Username:</label>
+                <input type="text" @bind="userName" name="username" id="username" placeholder="Enter your Username" class="input-field">
+
+                <label for="password">Password:</label>
+                <input type="password" @bind="password" name="password" id="password" placeholder="Enter your Password" class="input-field">
 
                 <button class="login-button" type="submit">Login</button>
             </form>
@@ -33,6 +41,52 @@
 
     </div>
 </div>
-@code {
 
+@code {
+    private string userName = string.Empty;
+    private string password = string.Empty;
+    private string errorMessage = string.Empty;
+
+    private async Task HandleFormSubmit()
+    {
+        errorMessage = string.Empty;
+
+        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
+        {
+            errorMessage = "Please fill all the fields!";
+            return;
+        }
+
+        var users = await UserServices.LoadUsersAsync();
+
+        var user = users.FirstOrDefault(u => u.UserName == userName);
+
+        if (user == null)
+        {
+            errorMessage = "User not found!";
+            return;
+        }
+
+        var hashedPassword = HashPassword(password);
+        if (user.Password != hashedPassword)
+        {
+            errorMessage = "Invalid Password!";
+            return;
+        }
+
+
+        AuthService.SetAuthenticatedUser(user);
+
+        Navigation.NavigateTo("/home");
+    }
+
+    private string HashPassword(string password)
+    {
+        using (var sha256 = SHA256.Create())
+        {
+            var bytes = Encoding.UTF8.GetBytes(password);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
+        }
+    }
 }
