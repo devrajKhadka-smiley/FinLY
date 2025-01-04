@@ -1,0 +1,205 @@
+﻿@page "/tags"
+@using FinLY.Models
+@using FinLY.Services
+@inject AuthenticationStateService AuthService
+@inject ITagsServices TagsServices
+@inject IJSRuntime JSRuntime
+
+<div class="top-nav">
+    <div class="dash-left-side">
+        <p>Welcome, @userName</p>
+    </div>
+    <div class="dash-right-side">
+        <p>@todayDate</p>
+    </div>
+</div>
+
+<div class="tag-container">
+    <div class="header">
+        <button class="add_cat_btn" data-bs-toggle="offcanvas" data-bs-target="#addCategoryOffcanvas" aria-controls="addCategoryOffcanvas">
+            Add Tags
+        </button>
+        <div class="tabs">
+            <button onclick="() => OnCategorySelected('All')" class="@(selectedCategory == "All" ? "active" : "")">All</button>
+            <button onclick="() => OnCategorySelected('Income')" class="@(selectedCategory == "Income" ? "active" : "")">Income</button>
+            <button onclick="() => OnCategorySelected('Expense')" class="@(selectedCategory == "Expense" ? "active" : "")">Expense</button>
+        </div>
+    </div>
+
+    <div class="all-tags">
+        <div class="tags-section">
+            <h3>Default Tags</h3>
+           <div class="tags-container">
+    @foreach (var tag in GetFilteredTags(true))
+    {
+        @if (!string.IsNullOrEmpty(tag.TagName))
+        {
+            <div class="tag-item">
+                <div class="tag-name">
+                    @tag.TagName
+                </div>
+                @if (!string.IsNullOrEmpty(tag.TagType))
+                {
+                    <span class="badge bg-secondary ms-2">@tag.TagType</span>
+                }
+            </div>
+        }
+    }
+</div>
+
+        </div>
+
+        <div class="custom-section">
+            <h3>Custom Tags</h3>
+            <div class="tags-container">
+                @if (GetFilteredTags(false).Any())
+                {
+                    @foreach (var tag in GetFilteredTags(false))
+                    {
+                        @if (!string.IsNullOrEmpty(tag.TagName))
+                        {
+                            <div class="tag-item">
+                                <div class="tag-name">
+                                    @tag.TagName
+                                </div>
+                                @if (!string.IsNullOrEmpty(tag.TagType))
+                                {
+                                    <span class="badge bg-secondary ms-2">@tag.TagType</span>
+                                }
+                            </div>
+                        }
+                    }
+                }
+                else
+                {
+                    <p>No custom tags are added.</p>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="addCategoryOffcanvas" aria-labelledby="addCategoryOffcanvasLabel">
+    <div class="offcanvas-header">
+        <h5 id="addCategoryOffcanvasLabel">Add New Category</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <EditForm Model="@newTag" OnValidSubmit="AddTag">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="tagName" class="form-label">Tag Name</label>
+                <InputText id="tagName" class="form-control" @bind-Value="newTag.TagName" />
+                <ValidationMessage For="@(() => newTag.TagName)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="tagType" class="form-label">Tag Type</label>
+                <select id="tagType" class="form-control" @bind="newTag.TagType">
+                    <option value="Income">Income</option>
+                    <option value="Expense">Expense</option>
+                </select>
+            </div>
+
+            <div class="button-container">
+                <button type="button" class="cancel-button" data-bs-dismiss="offcanvas">Cancel</button>
+                <button type="submit" class="save-button">Save Category</button>
+            </div>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger mt-3">
+                @errorMessage
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string userName;
+    private string todayDate;
+    private List<Models.Tags> tags = new List<Models.Tags>();
+    private Models.Tags newTag = new Models.Tags();
+    private string errorMessage;
+
+    private string selectedCategory = "All";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var userId = AuthService.GetAuthenticatedUser()?.UserId ?? Guid.Empty;
+            userName = AuthService.GetAuthenticatedUser()?.UserName ?? "Guest";
+            todayDate = DateTime.Now.ToString("MMMM dd, yyyy");
+
+            tags = await TagsServices.GetTagsByUserIdAsync(userId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing data: {ex.Message}");
+        }
+    }
+
+    private IEnumerable<Models.Tags> GetFilteredTags(bool isDefault)
+    {
+        var filteredTags = tags.Where(t => t.IsDefault == isDefault);
+
+        if (selectedCategory != "All")
+        {
+            filteredTags = filteredTags.Where(t => t.TagType == selectedCategory);
+        }
+
+        return filteredTags;
+    }
+
+    private void OnCategorySelected(string category)
+    {
+        selectedCategory = category;
+    }
+
+    private async Task AddTag()
+    {
+        errorMessage = "";
+
+        if (string.IsNullOrEmpty(newTag.TagName))
+        {
+            errorMessage = "Tag Name is required.";
+            return;
+        }
+
+        if (tags.Any(t => t.TagName.Equals(newTag.TagName, StringComparison.OrdinalIgnoreCase)))
+        {
+            errorMessage = "Tag already exists.";
+            return;
+        }
+
+        try
+        {
+            newTag.IsDefault = false;
+
+            var userId = AuthService.GetAuthenticatedUser()?.UserId ?? Guid.Empty;
+            newTag.UserId = userId;
+            await TagsServices.AddCustomTagAsync(newTag);
+
+            tags = await TagsServices.GetTagsByUserIdAsync(userId);
+
+            newTag = new Models.Tags();
+            errorMessage = "";
+
+            await CloseOffcanvas();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding tag: {ex.Message}");
+        }
+    }
+
+    private async Task CloseOffcanvas()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", "$('#addCategoryOffcanvas').offcanvas('hide')");
+    }
+}

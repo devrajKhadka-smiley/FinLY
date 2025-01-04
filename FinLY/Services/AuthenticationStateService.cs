@@ -1,10 +1,12 @@
 ﻿using FinLY.Models;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Maui.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 
 
 
@@ -34,10 +36,19 @@ namespace FinLY.Services
             return false;
         }
 
-        public void Logout()
+        public void LogOut()
         {
             authenticatedUser = null;
         }
 
+        public Guid GetUserId()
+        {
+            if (authenticatedUser == null)
+            {
+                // User is not authenticated
+                return Guid.Empty; // You can return an error or prompt to log in
+            }
+            return authenticatedUser.UserId;
+        }
     }
 }

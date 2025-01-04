@@ -1,60 +1,55 @@
-﻿@* <div class="top-row ps-3 navbar navbar-dark"> *@
-@*     <div class="container-fluid"> *@
-@*         <a class="navbar-brand" href="">FinLY</a> *@
-@*     </div> *@
-@* </div> *@
+﻿@inject NavigationManager Navigation
+@inject AuthenticationStateService AuthService
+@using FinLY.Models
+@using FinLY.Services
+@inject IUserServices UserServices
+@inject NavigationManager Navigation
+@using System.Security.Cryptography
+@using System.Text
+@inject AuthenticationStateService AuthService
 
-@* <input type="checkbox" title="Navigation menu" class="navbar-toggler" /> *@
-
-@* <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()"> *@
-@*     <nav class="flex-column"> *@
-@*         <div class="nav-item px-3"> *@
-@*             <NavLink class="nav-link" href="" Match="NavLinkMatch.All"> *@
-@*                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home *@
-@*             </NavLink> *@
-@*         </div> *@
-@*         <div class="nav-item px-3"> *@
-@*             <NavLink class="nav-link" href="counter"> *@
-@*                 <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter *@
-@*             </NavLink> *@
-@*         </div> *@
-@*         <div class="nav-item px-3"> *@
-@*             <NavLink class="nav-link" href="weather"> *@
-@*                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather *@
-@*             </NavLink> *@
-@*         </div> *@
-@*     </nav> *@
-@* </div> *@
-
-@* ----------------new nav bar---------------------------- *@
 
 <div class="nav_sidebar">
     <div class="logo">
         <img src="./Images/finlylogo.png" alt="Logo" />
         <h1>FinLY</h1>
     </div>
-    <nav class="nav">
-        <a href="home" class="nav-item active">
-            <span>&#x1F4CA;</span>
+    <nav class="nav" onclick="document.querySelector('.navbar-toggler').click()">
+        <NavLink class="nav-item" href="dashboard" Match="NavLinkMatch.All">
+            <span><i class="bi bi-house-door"></i></span>
             <span>Dashboard</span>
-        </a>
-        <a href="home" class="nav-item">
-            <span>&#x1F4B3;</span>
+        </NavLink>
+
+        <NavLink class="nav-item" href="transactions">
+            <span><i class="bi bi-cash"></i></span>
             <span>Transactions</span>
-        </a>
-        <a href="home" class="nav-item">
-            <span>&#x1F4C1;</span>
-            <span>Categories</span>
-        </a>
-        <a href="weather" class="nav-item">
-            <span>&#x1F4B8;</span>
+        </NavLink>
+
+
+        <NavLink class="nav-item" href="debts">
+            <span><i class="bi bi-bank"></i></span>
             <span>Debts</span>
-        </a>
+        </NavLink>
+
+
+        <NavLink class="nav-item" href="tags">
+            <span><i class="bi bi-tags"></i></span>
+            <span>Tags</span>
+        </NavLink>
     </nav>
+
     <div class="footer">
-        <!-- Using Bootstrap Icons -->
         <button class="export-button left"><i class="bi bi-file-earmark"></i> Export</button>
         <span class="separator">|</span>
-        <button class="export-button right"><i class="bi bi-box-arrow-right"></i> Log Out</button>
+        <button class="export-button right" @onclick="LogOutbtn"><i class="bi bi-box-arrow-right"></i> Log Out</button>
     </div>
 </div>
+
+@code {
+    private async Task LogOutbtn(MouseEventArgs e)
+    {
+        AuthService.LogOut();
+
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}

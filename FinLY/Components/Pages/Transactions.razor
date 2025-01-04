@@ -1,31 +1,36 @@
-﻿@page "/dashboard"
+﻿@page "/transactions"
 @using FinLY.Models
 @using FinLY.Services
 @inject AuthenticationStateService AuthService
-
+@inject ITransactionsServices transactionsServices
+@inject NavigationManager navigationManager
 
 <div class="top-nav">
     <div class="dash-left-side">
         <p>Welcome, @userName</p>
-
     </div>
     <div class="dash-right-side">
         <p>@todayDate</p>
     </div>
 </div>
 
+<h3>Transactions</h3>
+
 @code {
     private string userName;
     private string todayDate;
+    private List<Transactions> transactions = new List<Transactions>();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var user = AuthService.GetAuthenticatedUser();
         if (user != null)
         {
-            userName = user.UserName; // Assuming 'UserName' is the property of your user model
+            userName = user.UserName;
         }
+        todayDate = DateTime.Now.ToString("MMMM dd, yyyy");
 
-        todayDate = DateTime.Now.ToString("MMMM dd, yyyy"); // Format today's date as "Month Day, Year"
+      
     }
+
 }

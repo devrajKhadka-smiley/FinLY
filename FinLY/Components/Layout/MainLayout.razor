@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @using FinLY.Services
+@using FinLY.Models
 @inject AuthenticationStateService authStateService
 
 <div class="page">
@@ -12,7 +13,7 @@
     }
 
     <main>
-               <article class="content px-4">
+        <article class="content px-4">
             @Body
         </article>
     </main>

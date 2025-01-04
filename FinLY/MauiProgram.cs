@@ -1,4 +1,5 @@
 ﻿using FinLY.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace FinLY
@@ -17,8 +18,13 @@ namespace FinLY
 
             builder.Services.AddMauiBlazorWebView();
 
+          
+            builder.Services.AddScoped<ITagsServices, TagsServices>();
+            builder.Services.AddSingleton<AuthenticationStateService>();
             builder.Services.AddSingleton<IUserServices, UserServices>();
-            builder.Services.AddSingleton<AuthenticationStateService >();
+            builder.Services.AddSingleton<ITransactionsServices, TransactionsServices>();
+
+
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
