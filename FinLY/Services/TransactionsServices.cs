@@ -10,9 +10,9 @@ namespace FinLY.Services
 {
     public class TransactionsServices : ITransactionsServices
     {
-        private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseTransactions.json");
+        private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseUserTransactions.json");
 
-        public async Task AddTransactionAsync(Transactions transaction)
+        public async Task AddTransactionAsync(UserTransaction transaction)
         {
             try
             {
@@ -31,17 +31,17 @@ namespace FinLY.Services
             }
         }
 
-        private async Task<List<Transactions>> LoadTransactionsAsync()
+        private async Task<List<UserTransaction>> LoadTransactionsAsync()
         {
             try
             {
                 if (!File.Exists(FinLyFilePath))
                 {
-                    return new List<Transactions>();
+                    return new List<UserTransaction>();
                 }
 
                 var json = await File.ReadAllTextAsync(FinLyFilePath);
-                return JsonSerializer.Deserialize<List<Transactions>>(json) ?? new List<Transactions>();
+                return JsonSerializer.Deserialize<List<UserTransaction>>(json) ?? new List<UserTransaction>();
             }
             catch (Exception ex)
             {
@@ -50,7 +50,7 @@ namespace FinLY.Services
             }
         }
 
-        public async Task<List<Transactions>> GetTransactionsByUserIdAsync(Guid userId)
+        public async Task<List<UserTransaction>> GetTransactionsByUserIdAsync(Guid userId)
         {
             try
             {
@@ -63,11 +63,11 @@ namespace FinLY.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Error getting transactions: {ex.Message}");
-                return new List<Transactions>();
+                return new List<UserTransaction>();
             }
         }
 
-        private async Task SaveTransactionsAsync(List<Transactions> transactions)
+        private async Task SaveTransactionsAsync(List<UserTransaction> transactions)
         {
             try
             {

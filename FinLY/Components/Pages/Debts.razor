@@ -3,31 +3,279 @@
 @using FinLY.Models
 @using FinLY.Services
 @inject AuthenticationStateService AuthService
+@inject IDebtsServices debtsServices
 
-
-<div class="top-nav">
-    <div class="dash-left-side">
-        <p>Welcome, @userName</p>
-
+@if (AuthService.IsAuthenticated())
+{
+    <div class="top-nav">
+        <div class="dash-left-side">
+            <p>Welcome, @userName</p>
+        </div>
+        <div class="dash-right-side">
+            <p>@todayDate</p>
+        </div>
     </div>
-    <div class="dash-right-side">
-        <p>@todayDate</p>
-    </div>
-</div>
 
-<h3>Debts</h3>
+    <div>
+        <div class="debt_container">
+            <div class="debt_header">
+                <h1 class="debt_title">Debts</h1>
+                <button class="debt_button" @onclick="ShowAddDebtModal">Add Debts</button>
+            </div>
+            <div class="filters">
+                <div class="filter-buttons">
+                    <button class="outline-btn">Sort by Date</button>
+                    <button class="outline-btn">Cleared</button>
+                </div>
+                <div class="search">
+                    <input type="text" class="search-input" placeholder="Find Transaction...">
+                    <button class="search-clear-btn">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Debt Title</th>
+                            <th>Total Debt Amount</th>
+                            <th>Remaining Amount</th>
+                            <th>Due Date</th>
+                            <th>Source From</th>
+                            <th>Note</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var debt in allUserDebts)
+                        {
+                            <tr>
+                                <td>@debt.DebtTitle</td>
+                                <td>@debt.TotalDebtAmount</td>
+                                <td>@debt.RemainingAmount</td>
+                                <td>@debt.DueDate.ToString("MMMM dd, yyyy")</td>
+                                <td>@debt.SourceFrom</td>
+                                <td>@debt.Note</td>
+                                <td>@debt.DebtStatus</td>
+                                <td>
+                                    <button class="btn btn-info" @onclick="() => ShowEditDebtOffcanvas(debt)">Edit</button>
+
+                                    @if (debt.DebtStatus != "Paid")
+                                    {
+                                        <button class="btn btn-primary" @onclick="() => PayDebt(debt)">Pay</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Add Debt Modal -->
+        <div class="modal fade @((isAddDebtModalVisible) ? "show" : "")" tabindex="-1" aria-labelledby="addDebtModalLabel" aria-hidden="true" style="display: @(isAddDebtModalVisible ? "block" : "none")">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addDebtModalLabel">Add New Debt</h5>
+                        <button type="button" class="btn-close" @onclick="HideAddDebtModal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form @onsubmit="HandleSubmit">
+                            <label>Debt Title:</label>
+                            <input type="text" @bind="newUserDebt.DebtTitle" class="form-control" required />
+
+                            <label>Total Debt Amount:</label>
+                            <input type="number" @bind="newUserDebt.TotalDebtAmount" class="form-control" required />
+
+                            <label>Paid Amount:</label>
+                            <input type="number" @bind="newUserDebt.PaidAmount" class="form-control" required />
+
+                            <label>Due Date:</label>
+                            <input type="date" @bind="newUserDebt.DueDate" class="form-control" required />
+
+                            <label>Source From:</label>
+                            <input type="text" @bind="newUserDebt.SourceFrom" class="form-control" required />
+
+                            <label>Note:</label>
+                            <textarea @bind="newUserDebt.Note" class="form-control" rows="3"></textarea>
+
+                            <button type="submit" class="btn btn-success">Add Debt</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Offcanvas for editing debt -->
+        <div class="offcanvas offcanvas-end @((isEditDebtVisible) ? "show" : "")" tabindex="-1" id="editDebtOffcanvas" aria-labelledby="editDebtOffcanvasLabel" style="display: @(isEditDebtVisible ? "block" : "none")">
+            <div class="offcanvas-header">
+                <h5 id="editDebtOffcanvasLabel">Edit Debt</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" @onclick="HideEditDebtOffcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <form @onsubmit="HandleEditSubmit">
+                    <label>Debt Title:</label>
+                    <input type="text" @bind="debtToEdit.DebtTitle" class="form-control" required />
+
+                    <label>Total Debt Amount:</label>
+                    <input type="number" @bind="debtToEdit.TotalDebtAmount" class="form-control" required />
+
+                    <label>Paid Amount:</label>
+                    <input type="number" @bind="debtToEdit.PaidAmount" class="form-control" required />
+
+                    <label>Due Date:</label>
+                    <input type="date" @bind="debtToEdit.DueDate" class="form-control" required />
+
+                    <label>Source From:</label>
+                    <input type="text" @bind="debtToEdit.SourceFrom" class="form-control" required />
+
+                    <label>Note:</label>
+                    <textarea @bind="debtToEdit.Note" class="form-control" rows="3"></textarea>
+
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                    <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+}
 @code {
     private string userName;
     private string todayDate;
+    private UserDebt newUserDebt = new UserDebt();
+    private List<UserDebt> allUserDebts = new List<UserDebt>();
+    private UserDebt debtToEdit = new UserDebt(); // Initialize the object to avoid null references.
+    private bool isAddDebtModalVisible = false;
+    private bool isEditDebtVisible = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var user = AuthService.GetAuthenticatedUser();
         if (user != null)
         {
             userName = user.UserName;
+            await LoadDebts();
+        }
+        else
+        {
+            Console.WriteLine("User not authenticated.");
         }
 
-        todayDate = DateTime.Now.ToString("MMMM dd, yyyy"); 
+        todayDate = DateTime.Now.ToString("MMMM dd, yyyy");
+    }
+
+    private async Task HandleSubmit()
+    {
+        var user = AuthService.GetAuthenticatedUser();
+        if (user != null)
+        {
+            newUserDebt.UserId = user.UserId;
+            newUserDebt.DebtStatus = "Pending";
+
+            try
+            {
+                await debtsServices.AddDebtAsync(newUserDebt);
+                newUserDebt = new UserDebt();
+                await LoadDebts();
+                HideAddDebtModal();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding debt: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task LoadDebts()
+    {
+        var user = AuthService.GetAuthenticatedUser();
+        if (user != null)
+        {
+            allUserDebts = await debtsServices.GetDebtsByUserIdAsync(user.UserId);
+        }
+    }
+
+    private async Task PayDebt(UserDebt debt)
+    {
+        try
+        {
+            debt.RemainingAmount = 0;
+            debt.PaidAmount = debt.TotalDebtAmount;
+            debt.DebtStatus = "Paid";
+
+            await debtsServices.UpdateDebtAsync(debt);
+            await LoadDebts();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error paying debt: {ex.Message}");
+        }
+    }
+
+    private void ShowEditDebtOffcanvas(UserDebt debt)
+    {
+        // Initialize debtToEdit with the selected debt's data to avoid null reference.
+        debtToEdit = new UserDebt
+            {
+                DebtTitle = debt.DebtTitle,
+                TotalDebtAmount = debt.TotalDebtAmount,
+                PaidAmount = debt.PaidAmount,
+                RemainingAmount = debt.RemainingAmount, // Ensure to include all fields you want to edit.
+                DueDate = debt.DueDate,
+                SourceFrom = debt.SourceFrom,
+                Note = debt.Note,
+                DebtStatus = debt.DebtStatus
+            };
+
+        isEditDebtVisible = true; // Show the offcanvas
+    }
+
+    private void HideEditDebtOffcanvas()
+    {
+        isEditDebtVisible = false; // Hide the offcanvas
+    }
+
+    private async Task HandleEditSubmit()
+    {
+        try
+        {
+            if (debtToEdit != null)
+            {
+                await debtsServices.UpdateDebtAsync(debtToEdit);
+                debtToEdit = null;
+                await LoadDebts();
+                HideEditDebtOffcanvas(); // Hide the offcanvas after saving
+            }
+            else
+            {
+                Console.WriteLine("Debt to edit is not initialized.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error editing debt: {ex.Message}");
+        }
+    }
+
+    private void CancelEdit()
+    {
+        debtToEdit = null;
+        HideEditDebtOffcanvas(); // Hide offcanvas without saving
+    }
+
+    private void ShowAddDebtModal()
+    {
+        isAddDebtModalVisible = true;
+    }
+
+    private void HideAddDebtModal()
+    {
+        isAddDebtModalVisible = false;
     }
 }
+

@@ -20,33 +20,33 @@
             Add Tags
         </button>
         <div class="tabs">
-            <button onclick="() => OnCategorySelected('All')" class="@(selectedCategory == "All" ? "active" : "")">All</button>
-            <button onclick="() => OnCategorySelected('Income')" class="@(selectedCategory == "Income" ? "active" : "")">Income</button>
-            <button onclick="() => OnCategorySelected('Expense')" class="@(selectedCategory == "Expense" ? "active" : "")">Expense</button>
+
+            <button onclick="() => OnCategorySelected('All)" class="@(selectedCategory == "All" ? "active" : "")">All</button>
+            <button onclick="() => OnCategorySelected('Income)" class="@(selectedCategory == "Income" ? "active" : "")">Income</button>
+            <button onclick="() => OnCategorySelected('Expense)" class="@(selectedCategory == "Expense" ? "active" : "")">Expense</button>
         </div>
     </div>
 
     <div class="all-tags">
         <div class="tags-section">
             <h3>Default Tags</h3>
-           <div class="tags-container">
-    @foreach (var tag in GetFilteredTags(true))
-    {
-        @if (!string.IsNullOrEmpty(tag.TagName))
-        {
-            <div class="tag-item">
-                <div class="tag-name">
-                    @tag.TagName
-                </div>
-                @if (!string.IsNullOrEmpty(tag.TagType))
+            <div class="tags-container">
+                @foreach (var tag in GetFilteredTags(true))
                 {
-                    <span class="badge bg-secondary ms-2">@tag.TagType</span>
+                    @if (!string.IsNullOrEmpty(tag.TagName))
+                    {
+                        <div class="tag-item">
+                            <div class="tag-name">
+                                @tag.TagName
+                            </div>
+                            @if (!string.IsNullOrEmpty(tag.TagType))
+                            {
+                                <span class="badge bg-secondary ms-2">@tag.TagType</span>
+                            }
+                        </div>
+                    }
                 }
             </div>
-        }
-    }
-</div>
-
         </div>
 
         <div class="custom-section">
@@ -75,7 +75,6 @@
                     <p>No custom tags are added.</p>
                 }
             </div>
-
         </div>
     </div>
 </div>
@@ -159,6 +158,7 @@
     private void OnCategorySelected(string category)
     {
         selectedCategory = category;
+        StateHasChanged(); // Ensure UI updates after the selection.
     }
 
     private async Task AddTag()

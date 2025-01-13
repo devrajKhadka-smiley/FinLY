@@ -11,12 +11,13 @@ namespace FinLY.Services
     {
         private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseDebts.json");
 
-        public async Task AddDebtAsync(Debts debt)
+        public async Task AddDebtAsync(UserDebt debt)
         {
             try
             {
                 var debts = await LoadDebtsAsync();
-                debt.Id = Guid.NewGuid();  
+                debt.Id = Guid.NewGuid();
+                debt.RemainingAmount = debt.TotalDebtAmount - debt.PaidAmount;
                 debts.Add(debt);
                 await SaveDebtsAsync(debts);
             }
@@ -26,7 +27,7 @@ namespace FinLY.Services
             }
         }
 
-        public async Task<List<Debts>> GetDebtsByUserIdAsync(Guid userId)
+        public async Task<List<UserDebt>> GetDebtsByUserIdAsync(Guid userId)
         {
             try
             {
@@ -35,12 +36,12 @@ namespace FinLY.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting debts: {ex.Message}");
-                return new List<Debts>();
+                Console.WriteLine($"Error getting debts for userId {userId}: {ex.Message}");
+                return new List<UserDebt>();
             }
         }
 
-        public async Task<Debts> GetDebtByIdAsync(Guid debtId)
+        public async Task<UserDebt> GetDebtByIdAsync(Guid debtId)
         {
             try
             {
@@ -49,71 +50,72 @@ namespace FinLY.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting debt by ID: {ex.Message}");
+                // Instead of logging, handle the error
+                Console.WriteLine($"Error getting debt by ID {debtId}: {ex.Message}");
                 return null;
             }
         }
 
-        public async Task UpdateDebtAsync(Debts debt)
+        public async Task UpdateDebtAsync(UserDebt debt)
         {
             try
             {
+                if (debt == null)
+                {
+                    // You can handle the null debt scenario in a different way (e.g., throwing an exception or returning early)
+                    Console.WriteLine("Attempted to update a null debt");
+                    return;
+                }
+
                 var debts = await LoadDebtsAsync();
                 var existingDebt = debts.FirstOrDefault(d => d.Id == debt.Id);
                 if (existingDebt != null)
                 {
-                    existingDebt.DebtType = debt.DebtType;
-                    existingDebt.Amount = debt.Amount;
+                    existingDebt.DebtTitle = debt.DebtTitle;
+                    existingDebt.TotalDebtAmount = debt.TotalDebtAmount;
                     existingDebt.RemainingAmount = debt.RemainingAmount;
+                    existingDebt.PaidAmount = debt.PaidAmount;
                     existingDebt.DueDate = debt.DueDate;
-                    existingDebt.DateIncurred = debt.DateIncurred;
+                    existingDebt.SourceFrom = debt.SourceFrom;
                     existingDebt.Note = debt.Note;
+                    existingDebt.DebtStatus = debt.DebtStatus;
+
                     await SaveDebtsAsync(debts);
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error updating debt: {ex.Message}");
-            }
-        }
-
-        public async Task DeleteDebtAsync(Guid debtId)
-        {
-            try
-            {
-                var debts = await LoadDebtsAsync();
-                var debtToRemove = debts.FirstOrDefault(d => d.Id == debtId);
-                if (debtToRemove != null)
+                else
                 {
-                    debts.Remove(debtToRemove);
-                    await SaveDebtsAsync(debts);
+                    // Handle the case where the debt isn't found
+                    Console.WriteLine($"Debt with ID {debt.Id} not found for update");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error deleting debt: {ex.Message}");
+                // Handle errors instead of logging
+                Console.WriteLine($"Error updating debt with ID {debt.Id}: {ex.Message}");
             }
         }
 
-        private async Task<List<Debts>> LoadDebtsAsync()
+        private async Task<List<UserDebt>> LoadDebtsAsync()
         {
             try
             {
                 if (!System.IO.File.Exists(FinLyFilePath))
                 {
-                    return new List<Debts>();
+                    return new List<UserDebt>();
                 }
+
                 var json = await System.IO.File.ReadAllTextAsync(FinLyFilePath);
-                return System.Text.Json.JsonSerializer.Deserialize<List<Debts>>(json) ?? new List<Debts>();
+                return System.Text.Json.JsonSerializer.Deserialize<List<UserDebt>>(json) ?? new List<UserDebt>();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading debts: {ex.Message}");
-                return new List<Debts>();
+                // Handle errors instead of logging
+                Console.WriteLine($"Error loading debts from file: {ex.Message}");
+                return new List<UserDebt>();
             }
         }
 
-        private async Task SaveDebtsAsync(List<Debts> debts)
+        private async Task SaveDebtsAsync(List<UserDebt> debts)
         {
             try
             {
@@ -122,7 +124,8 @@ namespace FinLY.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving debts: {ex.Message}");
+                // Handle errors instead of logging
+                Console.WriteLine($"Error saving debts to file: {ex.Message}");
             }
         }
     }

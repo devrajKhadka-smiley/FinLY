@@ -9,7 +9,7 @@ namespace FinLY.Services
 {
     public interface ITransactionsServices
     {
-        Task AddTransactionAsync(Transactions transaction);
-        Task<List<Transactions>> GetTransactionsByUserIdAsync(Guid userId);
+        Task AddTransactionAsync(UserTransaction transaction);
+        Task<List<UserTransaction>> GetTransactionsByUserIdAsync(Guid userId);
     }
 }

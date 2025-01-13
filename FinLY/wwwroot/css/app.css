@@ -2,6 +2,7 @@
 @import url('signup.css');
 @import url('dashboard.css');
 @import url('tags.css');
+@import url('debts.css');
 
 html, body{
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;

@@ -22,9 +22,8 @@ namespace FinLY
             builder.Services.AddScoped<ITagsServices, TagsServices>();
             builder.Services.AddSingleton<AuthenticationStateService>();
             builder.Services.AddSingleton<IUserServices, UserServices>();
-            builder.Services.AddSingleton<ITransactionsServices, TransactionsServices>();
-
-
+            builder.Services.AddTransient<ITransactionsServices, TransactionsServices>();
+            builder.Services.AddTransient<IDebtsServices, DebtsServices>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

@@ -9,9 +9,8 @@ namespace FinLY.Services
 {
     public  interface IDebtsServices
     {
-        Task AddDebtAsync(Debts debt);
-        Task<List<Debts>> GetDebtsByUserIdAsync(Guid userId);
-        Task<Debts> GetDebtByIdAsync(Guid debtId);
-        Task UpdateDebtAsync(Debts debt);
+        Task AddDebtAsync(UserDebt debt);
+        Task<List<UserDebt>> GetDebtsByUserIdAsync(Guid userId);
+        Task UpdateDebtAsync(UserDebt debt);
     }
 }

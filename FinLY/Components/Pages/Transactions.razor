@@ -4,22 +4,88 @@
 @inject AuthenticationStateService AuthService
 @inject ITransactionsServices transactionsServices
 @inject NavigationManager navigationManager
+@inject ITagsServices tagsServices
 
-<div class="top-nav">
-    <div class="dash-left-side">
-        <p>Welcome, @userName</p>
+@if (AuthService.IsAuthenticated())
+{
+    <div class="top-nav">
+        <div class="dash-left-side">
+            <p>Welcome, @userName</p>
+        </div>
+        <div class="dash-right-side">
+            <p>@todayDate</p>
+        </div>
     </div>
-    <div class="dash-right-side">
-        <p>@todayDate</p>
+    <div>
+        <form>
+            <label>Transaction Type:</label>
+            <select @bind="newTransaction.TransactionType" class="form-control">
+                <option value="">Select Debit/Credit</option>
+                <option value="Debit">Debit</option>
+                <option value="Credit">Credit</option>
+            </select>
+            <label>Transaction Amount:</label>
+            <input type="number" @bind="newTransaction.Amounts" class="form-control" required />
+            <select @bind="newTransaction.Tag" class="form-control">
+                <option value="">Select a Tag</option>
+                @foreach (var tag in allTags)
+                {
+                    <option value="@tag.TagName">@tag.TagName</option>
+                }
+            </select>
+            <label>Transaction Date (Optional):</label>
+            <input type="date" @bind="newTransaction.TransactionDate" class="form-control" />
+            <label>Note (Optional):</label>
+            <textarea @bind="newTransaction.Note" class="form-control" rows="3"></textarea>
+            <button type="submit" @onclick="AddTransactionbtn" class="btn btn-primary">Add Transaction</button>
+        </form>
     </div>
-</div>
 
-<h3>Transactions</h3>
+    <!-- Display the list of transactions -->
+    <div>
+        <h3>Transaction History</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Tag</th>
+                    <th>Date</th>
+                    <th>Note</th>
+                    <th>Actions</th>  <!-- Column for actions -->
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var transaction in allTransactions)
+                {
+                    <tr>
+                        <td>@transaction.TransactionType</td>
+                        <td>@transaction.Amounts</td>
+                        <td>@transaction.Tag</td>
+                        <td>@transaction.TransactionDate?.ToString("MMMM dd, yyyy")</td>
+                        <td>@transaction.Note</td>
+                        <td>
+                            <!-- Edit button only -->
+                            <button @onclick="() => EditTransaction(transaction)" class="btn btn-warning">Edit</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p>You are not authenticated. Please log in to view transactions.</p>
+}
 
 @code {
     private string userName;
     private string todayDate;
-    private List<Transactions> transactions = new List<Transactions>();
+    private UserTransaction newTransaction = new UserTransaction();
+    private List<Models.Tags> allTags = new List<Models.Tags>();
+    private List<UserTransaction> allTransactions = new List<UserTransaction>();
+    private string errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -27,8 +93,47 @@
         if (user != null)
         {
             userName = user.UserName;
+            allTags = await tagsServices.GetTagsByUserIdAsync(user.UserId);
         }
         todayDate = DateTime.Now.ToString("MMMM dd, yyyy");
-      
-    
+
+        await LoadTransaction();
+    }
+
+    private async Task AddTransactionbtn()
+    {
+        var user = AuthService.GetAuthenticatedUser();
+        if (user != null)
+        {
+            newTransaction.UserId = user.UserId;
+
+            try
+            {
+                await transactionsServices.AddTransactionAsync(newTransaction);
+
+                newTransaction = new UserTransaction();
+
+                await LoadTransaction();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error Adding Transaction: {ex.Message}";
+                Console.WriteLine(errorMessage);
+            }
+        }
+    }
+
+    private async Task LoadTransaction()
+    {
+        var user = AuthService.GetAuthenticatedUser();
+        if (user != null)
+        {
+            allTransactions = await transactionsServices.GetTransactionsByUserIdAsync(user.UserId);
+        }
+    }
+
+    private void EditTransaction(UserTransaction transaction)
+    {
+        newTransaction = transaction;
+    }
 }
