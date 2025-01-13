@@ -23,9 +23,9 @@
         var user = AuthService.GetAuthenticatedUser();
         if (user != null)
         {
-            userName = user.UserName; // Assuming 'UserName' is the property of your user model
+            userName = user.UserName; 
         }
 
-        todayDate = DateTime.Now.ToString("MMMM dd, yyyy"); // Format today's date as "Month Day, Year"
+        todayDate = DateTime.Now.ToString("MMMM dd, yyyy"); 
     }
 }

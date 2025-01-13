@@ -23,7 +23,7 @@ namespace FinLY.Services
                 if (!tag.IsDefault)
                 {
                     tag.TagId = Guid.NewGuid();
-                    tags.Add(tag);  // Add custom user tag
+                    tags.Add(tag);  
                     await SaveTagsAsync(tags);
                 }
                 else
@@ -74,18 +74,13 @@ namespace FinLY.Services
         {
             try
             {
-                //var tags = await LoadTagsAsync();
 
-                //return tags.Where(t => t.UserId == UserId || t.UserId == Guid.Empty).ToList();
                 var tags = await LoadTagsAsync();
 
-                // Always include default tags for all users
                 var defaultTags = tags.Where(t => t.IsDefault).ToList();
 
-                // Include user-specific tags, if any
                 var userTags = tags.Where(t => t.UserId == UserId).ToList();
 
-                // Combine default and user-specific tags
                 var allTags = defaultTags.Concat(userTags).ToList();
 
                 return allTags;
