@@ -13,6 +13,6 @@ namespace FinLY.Services
 
         Task<List<Users>> LoadUsersAsync();
 
-
+        Task UpdateUserAsync(Users user);
     }
 }

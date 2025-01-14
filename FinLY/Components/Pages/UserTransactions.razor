@@ -1,0 +1,260 @@
+﻿@page "/transactions"
+@using FinLY.Models
+@using FinLY.Services
+@inject AuthenticationStateService AuthService
+@inject IUserTransactionServices UserTransactionService
+@inject ITagsServices TagsServices
+
+@if (AuthService.IsAuthenticated())
+{
+    <div class="top-nav">
+        <div class="dash-left-side">
+            <p>Welcome, @userName</p>
+        </div>
+        <div class="dash-right-side">
+            <p>@todayDate</p>
+        </div>
+    </div>
+
+    <div class="transaction_container">
+        <div class="transaction_header">
+            <h1 class="transaction_title">Transactions</h1>
+            <button class="transaction_button btn btn-primary" @onclick="OpenAddTransactionModal">
+                Add Transactions
+            </button>
+        </div>
+
+        <hr style="border: none; height: 2px; background-color: black;">
+        <div class="transaction_filters">
+            <div class="filter-buttons d-flex align-items-center">
+                <input type="date" class="form-control filter-input" required />
+                <input type="date" class="form-control filter-input" required />
+            </div>
+
+            <div class="search d-flex align-items-center">
+                <input type="text" class="search-input form-control" placeholder="Find Transaction by Title..." />
+                <button class="search-clear-btn btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="transaction_table_container" style="margin-top: 20px;">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Tag</th>
+                        <th>Note</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (userTransactions.Count > 0)
+                    {
+                        @foreach (var transaction in userTransactions)
+                        {
+                            <tr>
+                                <td>@transaction.TransactionTitle</td>
+                                <td>@transaction.TransactionType</td>
+                                <td>@transaction.Amounts</td>
+                                <td>@transaction.Tag</td>
+                                <td>@transaction.Note</td>
+                                <td>@transaction.TransactionDate?.ToString("yyyy-MM-dd")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center">No transactions found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Transaction Modal -->
+    <div class="modal fade @modalClass" id="addTransactionModal" tabindex="-1" aria-labelledby="addTransactionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content custom-modal">
+                <div class="modal-header custom-modal-header">
+                    <h5 class="modal-title" id="addTransactionModalLabel">Add Transaction</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAddTransactionModal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body custom-modal-body d-flex">
+                    <div class="left-column col-6">
+                        <form @onsubmit="HandleSubmit">
+                            <div class="mb-3">
+                                <label for="Total Amount" class="form-label">Total Amount</label>
+                                <h1>Rs. 1526</h1>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="transactionType" class="form-label">Transaction Type</label>
+                                <div class="btn-group w-100" role="group">
+                                    <button type="button"
+                                            class="btn @(newTransaction.TransactionType == "InFlow" ? "btn-primary" : "btn-outline-primary")"
+                                            @onclick='() => SetTransactionType("InFlow")'>
+                                        InFlow
+                                    </button>
+                                    <button type="button"
+                                            class="btn @(newTransaction.TransactionType == "OutFlow" ? "btn-primary" : "btn-outline-primary")"
+                                            @onclick='() => SetTransactionType("OutFlow")'>
+                                        OutFlow
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="transactionTitle" class="form-label">Transaction Title</label>
+                                <input type="text" @bind="newTransaction.TransactionTitle" id="transactionTitle" class="form-control" placeholder="Enter a title for the transaction" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="transactionAmount" class="form-label">Transaction Amount</label>
+                                <input type="number" id="transactionAmount" class="form-control" @bind="newTransaction.Amounts" step="0.01" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="transactionNote" class="form-label">Note (Optional)</label>
+                                <textarea @bind="newTransaction.Note" id="transactionNote" class="form-control" rows="3"></textarea>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="right-column col-6">
+                        <div class="mb-3">
+                            <label for="TransactionDate">Transaction Date</label>
+                            <input type="date" id="TransactionDate" class="form-control" @bind="newTransaction.TransactionDate" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="transactionTag" class="form-label">Tag</label>
+                            <div id="transactionTag" class="scrollable-tags">
+                                @foreach (var tag in allTags)
+                                {
+                                    <div @onclick="() => SetTagSelected(tag.TagName)"
+                                         class="tag-item @(selectedTag == tag.TagName ? "selected" : "")">
+                                        <label for="tag_@tag.TagName">@tag.TagName</label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+
+
+
+                        <div class="modal-footer custom-modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseAddTransactionModal">Close</button>
+                            <button type="submit" @onclick="HandleSubmit" class="btn btn-primary">Add Transaction</button>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private UserTransaction newTransaction = new UserTransaction();
+    private string userName;
+    private string todayDate;
+    private bool isSuccess = false;
+    private string selectedTag = string.Empty;
+    private bool isError = false;
+    private bool isModalOpen = false;
+    private string modalClass => isModalOpen ? "show d-block" : "fade"; // Bootstrap 'show' class to display the modal
+
+    private List<Models.Tags> allTags = new List<Models.Tags>();
+    private List<UserTransaction> userTransactions = new List<UserTransaction>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var user = AuthService.GetAuthenticatedUser();
+            userName = user?.UserName ?? "Guest";
+            todayDate = DateTime.Now.ToString("MMMM dd, yyyy");
+
+            newTransaction.UserId = user?.UserId ?? Guid.Empty;
+            newTransaction.TransactionType = "InFlow";
+
+            if (user != null)
+            {
+                userName = user.UserName;
+                allTags = await TagsServices.GetTagsByUserIdAsync(user.UserId);
+
+                // Load all transactions for the authenticated user
+                userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(user.UserId);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing data: {ex.Message}");
+        }
+    }
+
+  
+
+    private void OpenAddTransactionModal()
+    {
+        isModalOpen = true; // Open the modal
+    }
+
+    private void CloseAddTransactionModal()
+    {
+        isModalOpen = false; // Close the modal
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            // Add the transaction
+            await UserTransactionService.AddTransactionAsync(newTransaction);
+            isSuccess = true;
+            isError = false;
+
+            // Reload transactions after submission
+            userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(newTransaction.UserId);
+
+            // Reset the form after successful submission
+            newTransaction = new UserTransaction
+                {
+                    UserId = AuthService.GetAuthenticatedUser()?.UserId ?? Guid.Empty
+                };
+
+            // Close the modal
+            isModalOpen = false;
+        }
+        catch (Exception ex)
+        {
+            isError = true;
+            isSuccess = false;
+            Console.WriteLine($"Error adding transaction: {ex.Message}");
+        }
+    }
+
+    private void SetTransactionType(string transactionType)
+    {
+        newTransaction.TransactionType = transactionType;
+    }
+
+    private void SetTagSelected(string tagName)
+    {
+        selectedTag = selectedTag == tagName ? string.Empty : tagName;
+        newTransaction.Tag = selectedTag; 
+    }
+
+    private string GetTagClass(string tagName)
+    {
+        return selectedTag == tagName ? "selected" : "";
+    }
+
+}

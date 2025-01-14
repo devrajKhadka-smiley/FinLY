@@ -2,30 +2,44 @@
 @using FinLY.Models
 @using FinLY.Services
 @inject AuthenticationStateService AuthService
+@inject IUserBalanceServicees userBalanceService
 
-
-<div class="top-nav">
-    <div class="dash-left-side">
-        <p>Welcome, @userName</p>
-
+@if (userBalance != null)
+{
+    <div class="top-nav">
+        <div class="dash-left-side">
+            <p>Welcome, @userName</p>
+        </div>
+        <div class="dash-right-side">
+            <p>@todayDate</p>
+            <p class="balance-display">Available Balance: @userBalance.AvailableBalance.ToString("C")</p> <!-- Display balance -->
+            <p class="balance-display">Total Cash InFlow: @userBalance.TotalCashInFlow.ToString("C")</p> <!-- Display Total Cash InFlow -->
+            <p class="balance-display">Total Cash OutFlow: @userBalance.TotalCashOutFlow.ToString("C")</p> <!-- Display Total Cash OutFlow -->
+            <p class="balance-display">Total Debt Amount: @userBalance.TotalDebtAmount.ToString("C")</p> <!-- Display Total Debt -->
+            <p class="balance-display">Available Balance with Debt: @userBalance.AvailableBalancewithDebt.ToString("C")</p> <!-- Display Available Balance with Debt -->
+        </div>
     </div>
-    <div class="dash-right-side">
-        <p>@todayDate</p>
-    </div>
-</div>
+}
+else
+{
+    <p>Loading balance...</p>
+}
 
 @code {
+    private UserBalance userBalance;
     private string userName;
     private string todayDate;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var user = AuthService.GetAuthenticatedUser();
         if (user != null)
         {
-            userName = user.UserName; 
+            // Fetch user balance using the service, assuming it contains the necessary fields
+            userBalance = await userBalanceService.GetUserBalanceAsync(user.UserId);
         }
 
-        todayDate = DateTime.Now.ToString("MMMM dd, yyyy"); 
+        userName = user?.UserName;
+        todayDate = DateTime.Now.ToString("MMMM dd, yyyy");
     }
 }

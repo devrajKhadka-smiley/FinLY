@@ -4,6 +4,7 @@
 @using FinLY.Services
 @inject AuthenticationStateService AuthService
 @inject IDebtsServices debtsServices
+@inject IUserBalanceServicees userBalanceService
 
 @if (AuthService.IsAuthenticated())
 {
@@ -246,7 +247,23 @@
         {
             if (debtToEdit != null)
             {
+                // Update the debt
                 await debtsServices.UpdateDebtAsync(debtToEdit);
+
+                // Recalculate and update the user balance
+                var user = AuthService.GetAuthenticatedUser();
+                if (user != null)
+                {
+                    // Update the user's balance by including the debt change
+                    await userBalanceService.UpdateUserBalanceAsync(user.UserId, debtToEdit.TotalDebtAmount, "InFlow");
+
+                    // Optionally, if the total debt is reduced (or cleared), update with "OutFlow"
+                    if (debtToEdit.DebtStatus == "Paid")
+                    {
+                        await userBalanceService.UpdateUserBalanceAsync(user.UserId, debtToEdit.PaidAmount, "OutFlow");
+                    }
+                }
+
                 debtToEdit = null;
                 await LoadDebts();
                 HideEditDebtOffcanvas(); // Hide the offcanvas after saving
@@ -261,6 +278,7 @@
             Console.WriteLine($"Error editing debt: {ex.Message}");
         }
     }
+
 
     private void CancelEdit()
     {

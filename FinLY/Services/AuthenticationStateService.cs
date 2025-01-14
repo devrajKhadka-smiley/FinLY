@@ -8,8 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-
-
 namespace FinLY.Services
 {
     public class AuthenticationStateService
@@ -45,8 +43,7 @@ namespace FinLY.Services
         {
             if (authenticatedUser == null)
             {
-                // User is not authenticated
-                return Guid.Empty; // You can return an error or prompt to log in
+                return Guid.Empty; 
             }
             return authenticatedUser.UserId;
         }

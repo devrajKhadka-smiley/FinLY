@@ -1,14 +1,14 @@
-﻿using System;
+﻿using FinLY.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using FinLY.Models;
 
 namespace FinLY.Services
 {
-    public class TransactionsServices : ITransactionsServices
+    public class UserTransactionsServices : IUserTransactionServices
     {
         private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseUserTransactions.json");
 
@@ -16,18 +16,16 @@ namespace FinLY.Services
         {
             try
             {
-
                 var transactions = await LoadTransactionsAsync();
-
-                transaction.Id = Guid.NewGuid();
+                transaction.Id = Guid.NewGuid(); 
 
                 transactions.Add(transaction);
+
                 await SaveTransactionsAsync(transactions);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error adding transaction: {ex.Message}");
-                throw; 
+                Console.WriteLine($"Error Adding Transaction: {ex.Message}");
             }
         }
 
@@ -55,10 +53,7 @@ namespace FinLY.Services
             try
             {
                 var transactions = await LoadTransactionsAsync();
-
-                var userTransactions = transactions.Where(t => t.UserId == userId).ToList();
-
-                return userTransactions;
+                return transactions.Where(t => t.UserId == userId).ToList();
             }
             catch (Exception ex)
             {
@@ -77,6 +72,39 @@ namespace FinLY.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Error saving transactions: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task UpdateTransactionAsync(UserTransaction transaction)
+        {
+            try
+            {
+                if (transaction == null)
+                {
+                    throw new ArgumentNullException(nameof(transaction), "Transaction cannot be null");
+                }
+
+                var transactions = await LoadTransactionsAsync();
+                var existingTransaction = transactions.FirstOrDefault(t => t.Id == transaction.Id);
+                if (existingTransaction != null)
+                {
+                    existingTransaction.TransactionTitle = transaction.TransactionTitle;
+                    existingTransaction.TransactionType = transaction.TransactionType;
+                    existingTransaction.Amounts = transaction.Amounts;
+                    existingTransaction.Tag = transaction.Tag;
+                    existingTransaction.Note = transaction.Note;
+                    existingTransaction.TransactionDate = transaction.TransactionDate;
+                    await SaveTransactionsAsync(transactions);
+                }
+                else
+                {
+                    Console.WriteLine($"Transaction with ID {transaction.Id} not found for update");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating transaction: {ex.Message}");
                 throw;
             }
         }
