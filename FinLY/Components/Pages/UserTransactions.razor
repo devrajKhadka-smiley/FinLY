@@ -92,7 +92,7 @@
                         <form @onsubmit="HandleSubmit">
                             <div class="mb-3">
                                 <label for="Total Amount" class="form-label">Total Amount</label>
-                                <h1>Rs. 1526</h1>
+                                <h1>@userBalance?.AvailableBalance</h1>
                             </div>
 
                             <div class="mb-3">
@@ -170,7 +170,9 @@
     private string selectedTag = string.Empty;
     private bool isError = false;
     private bool isModalOpen = false;
-    private string modalClass => isModalOpen ? "show d-block" : "fade"; // Bootstrap 'show' class to display the modal
+    private string modalClass => isModalOpen ? "show d-block" : "fade"; 
+    private UserBalance userBalance = new UserBalance();
+
 
     private List<Models.Tags> allTags = new List<Models.Tags>();
     private List<UserTransaction> userTransactions = new List<UserTransaction>();
@@ -193,6 +195,8 @@
 
                 // Load all transactions for the authenticated user
                 userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(user.UserId);
+
+                userBalance = await UserBalawnceServicees.GetUserBalanceAsync(user.UserId);
             }
         }
         catch (Exception ex)
