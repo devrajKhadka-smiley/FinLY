@@ -19,5 +19,7 @@ namespace FinLY.Models
 
         public decimal AvailableBalancewithDebt { get; set; } = 0;
 
+        public decimal DebtRemainingAmount { get; set; } = 0;
+
     }
 }

@@ -181,9 +181,21 @@
             try
             {
                 await debtsServices.AddDebtAsync(newUserDebt);
+                
+                decimal totalDebtAmount = newUserDebt.TotalDebtAmount;
+                var allDebts = await debtsServices.GetDebtsByUserIdAsync(user.UserId);
+                totalDebtAmount = allDebts.Sum(debt => debt.TotalDebtAmount);
+
+
+                var userBalance = await userBalanceService.GetUserBalanceAsync(user.UserId);
+                decimal availableBalanceWithDebt = userBalance.AvailableBalance + totalDebtAmount - newUserDebt.PaidAmount;
+                await userBalanceService.UpdateUserBalanceAsync(user.UserId, availableBalanceWithDebt, "Debts");
+
+                
                 newUserDebt = new UserDebt();
                 await LoadDebts();
                 HideAddDebtModal();
+
             }
             catch (Exception ex)
             {

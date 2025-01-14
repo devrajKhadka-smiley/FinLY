@@ -50,6 +50,7 @@
                         <th>Tag</th>
                         <th>Note</th>
                         <th>Date</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -64,6 +65,11 @@
                                 <td>@transaction.Tag</td>
                                 <td>@transaction.Note</td>
                                 <td>@transaction.TransactionDate?.ToString("yyyy-MM-dd")</td>
+                                <td>
+                                    <button @onclick="() => EditTransaction(transaction)" class="btn btn-warning" data-bs-toggle="offcanvas" data-bs-target="#editTransactionOffcanvas">
+                                        Edit
+                                    </button>
+                                </td>
                             </tr>
                         }
                     }
@@ -77,6 +83,49 @@
             </table>
         </div>
     </div>
+
+    <!-- Edit Transaction Offcanvas -->
+    <div class="offcanvas offcanvas-end @offcanvasClass" tabindex="-1" id="editTransactionOffcanvas" aria-labelledby="editTransactionOffcanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="editTransactionOffcanvasLabel">Edit Transaction</h5>
+            <button type="button" class="btn-close" @onclick="CloseEditTransactionOffcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form>
+                <div class="mb-3">
+                    <label for="transactionTitle" class="form-label">Transaction Title</label>
+                    <input type="text" @bind="transactionToEdit.TransactionTitle" class="form-control" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="transactionAmount" class="form-label">Transaction Amount</label>
+                    <input type="number" @bind="transactionToEdit.Amounts" class="form-control" step="0.01" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="transactionNote" class="form-label">Note (Optional)</label>
+                    <textarea @bind="transactionToEdit.Note" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="TransactionDate">Transaction Date</label>
+                    <input type="date" @bind="transactionToEdit.TransactionDate" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="transactionTag" class="form-label">Tag</label>
+                    <input type="text" @bind="transactionToEdit.Tag" class="form-control" />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseEditTransactionOffcanvas">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
 
     <!-- Add Transaction Modal -->
     <div class="modal fade @modalClass" id="addTransactionModal" tabindex="-1" aria-labelledby="addTransactionModalLabel" aria-hidden="true">
@@ -129,6 +178,13 @@
                     </div>
 
                     <div class="right-column col-6">
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                @errorMessage
+                            </div>
+                        }
+
                         <div class="mb-3">
                             <label for="TransactionDate">Transaction Date</label>
                             <input type="date" id="TransactionDate" class="form-control" @bind="newTransaction.TransactionDate" />
@@ -165,6 +221,7 @@
 @code {
     private UserTransaction newTransaction = new UserTransaction();
     private string userName;
+    private UserTransaction transactionToEdit = new UserTransaction();
     private string todayDate;
     private bool isSuccess = false;
     private string selectedTag = string.Empty;
@@ -172,6 +229,11 @@
     private bool isModalOpen = false;
     private string modalClass => isModalOpen ? "show d-block" : "fade"; 
     private UserBalance userBalance = new UserBalance();
+    private string offcanvasClass => isOffcanvasOpen ? "show" : "";
+    private bool isOffcanvasOpen = false; // Controls the offcanvas visibility
+    private string errorMessage;
+
+
 
 
     private List<Models.Tags> allTags = new List<Models.Tags>();
@@ -221,6 +283,20 @@
     {
         try
         {
+            if (newTransaction.TransactionType == "OutFlow" && newTransaction.Amounts > userBalance.AvailableBalance)
+            {
+                errorMessage = "Amount exceeds the available balance!";
+                return;
+            }
+
+            if (string.IsNullOrEmpty(newTransaction.TransactionTitle) || newTransaction.Amounts <= 0 || newTransaction.TransactionDate == null || string.IsNullOrEmpty(newTransaction.Tag))
+            {
+                errorMessage = "Please fill in all required fields!";
+                return;
+            }
+
+            errorMessage = string.Empty;
+
             // Add the transaction
             await UserTransactionService.AddTransactionAsync(newTransaction);
 
@@ -261,6 +337,53 @@
     private string GetTagClass(string tagName)
     {
         return selectedTag == tagName ? "selected" : "";
+    }
+
+    private void EditTransaction(UserTransaction transaction)
+    {
+        // Set the transaction data for editing
+        transactionToEdit = new UserTransaction
+            {
+                TransactionTitle = transaction.TransactionTitle,
+                Amounts = transaction.Amounts,
+                Note = transaction.Note,
+                TransactionDate = transaction.TransactionDate,
+                Tag = transaction.Tag,
+                UserId = transaction.UserId,
+                TransactionType = transaction.TransactionType
+            };
+
+        // Open the off-canvas (not the modal)
+        isOffcanvasOpen = true;
+    }
+
+
+    private void CloseEditTransactionOffcanvas()
+    {
+        isOffcanvasOpen = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleEditTransactionSubmit()
+    {
+        try
+        {
+            // Ensure the transaction is updated in the backend
+            await UserTransactionService.UpdateTransactionAsync(transactionToEdit); // Update the transaction
+
+            // Reload the transactions after updating
+            userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(transactionToEdit.UserId);
+
+            // Close the offcanvas after saving
+            CloseEditTransactionOffcanvas(); // Ensure this method closes the offcanvas
+            StateHasChanged();
+
+          
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating transaction: {ex.Message}");
+        }
     }
 
 }

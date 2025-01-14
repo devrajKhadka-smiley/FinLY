@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FinLY.Models;
+using FinLY.Services;
 
 namespace FinLY.Services
 {
@@ -128,5 +129,26 @@ namespace FinLY.Services
                 Console.WriteLine($"Error saving debts to file: {ex.Message}");
             }
         }
+
+        private async Task<decimal> CalculateTotalDebtAmount(Guid userId)
+        {
+            // Create an instance of DebtsServices (or inject it if possible)
+            var debtsServices = new DebtsServices(); // This might be injected instead of being instantiated here
+
+            // Call the method to get the list of debts for the given user
+            var userDebts = await debtsServices.GetDebtsByUserIdAsync(userId);
+
+            // Ensure there are debts before summing
+            if (userDebts == null || !userDebts.Any())
+            {
+                return 0;  // Return 0 if no debts are found
+            }
+
+            // Sum up the TotalDebtAmount of all debts
+            decimal totalDebtAmount = userDebts.Sum(debt => debt.TotalDebtAmount);
+
+            return totalDebtAmount;
+        }
+
     }
 }
