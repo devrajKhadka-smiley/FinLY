@@ -4,6 +4,7 @@
 @inject AuthenticationStateService AuthService
 @inject IUserTransactionServices UserTransactionService
 @inject ITagsServices TagsServices
+@inject IUserBalanceServicees UserBalawnceServicees
 
 @if (AuthService.IsAuthenticated())
 {
@@ -218,11 +219,12 @@
         {
             // Add the transaction
             await UserTransactionService.AddTransactionAsync(newTransaction);
-            isSuccess = true;
-            isError = false;
+
 
             // Reload transactions after submission
             userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(newTransaction.UserId);
+
+            await UserBalawnceServicees.UpdateUserBalanceAsync(newTransaction.UserId, newTransaction.Amounts, newTransaction.TransactionType);
 
             // Reset the form after successful submission
             newTransaction = new UserTransaction
