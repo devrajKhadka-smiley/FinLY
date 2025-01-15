@@ -2,8 +2,10 @@
 @using FinLY.Models
 @using FinLY.Services
 @inject AuthenticationStateService AuthService
-@inject IUserBalanceServicees userBalanceService
 @inject IDebtsServices debtService
+@inject IUserTransactionServices transactionService
+@inject IUserBalanceServicees userBalanceService
+
 
 @if (userBalance != null)
 {
@@ -83,6 +85,27 @@
             </div>
         </div>
     </div>
+    <div class="basic-info">
+        <div class="left-side">
+
+            
+            <div class="info-item inflow_info">
+                <p>Transactions Count: @(transactions?.Count(t => t.Amounts > 0).ToString() ?? "0")</p> <!-- Count individual inflows -->
+            </div>
+
+
+            <div class="info-item debt_info">
+                <p>Debts Count: @(debts?.Count.ToString() ?? "0")</p>  <!-- Count of debts -->
+            </div>
+
+
+        </div>
+        <div class="right-side">
+
+            <input type="date" class="own-filter-input" value="@filterStartDate?.ToString("yyyy-MM-dd")" @onchange="FilterStartDate" required />
+            <input type="date" class="own-filter-input" value="@filterEndDate?.ToString("yyyy-MM-dd")" @onchange="FilterEndDate" required />
+        </div>
+    </div>
 
     <div class="debts-section">
         <div class="div_pie">
@@ -91,7 +114,10 @@
 
         <div class="div_table">
 
-            <h3>Your Debts</h3>
+            <div class="debts-header">
+                <h3>Your Debts</h3>
+                <button class="btn own-btn-secondary" @onclick="ResetFilters">Reset Filters</button>
+            </div>
             @if (debts != null && debts.Any())
             {
                 <table class="debts-table">
@@ -100,16 +126,18 @@
                             <th>Debt Name</th>
                             <th>Total Amount</th>
                             <th>Remaining Amount</th>
+                            <th>Debts Date</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var debt in debts.Where(d => d.DebtStatus == "Pending"))
+                        @foreach (var debt in filteredDebts.Where(d => d.DebtStatus == "Pending"))
                         {
                             <tr>
                                 <td>@debt.DebtTitle</td>
                                 <td>@debt.TotalDebtAmount.ToString("C")</td>
                                 <td>@debt.RemainingAmount.ToString("C")</td>
+                                <td>@debt.DueDate.ToString("MM/dd/yyyy")</td>
                                 <td>@debt.DebtStatus</td>
                             </tr>
                         }
@@ -121,6 +149,7 @@
                 <p>No debts found.</p>
             }
         </div>
+
     </div>
 }
 else
@@ -133,6 +162,11 @@ else
     private string userName;
     private string todayDate;
     private List<UserDebt> debts;
+    private DateTime? filterStartDate;
+    private DateTime? filterEndDate;
+    private List<UserDebt> filteredDebts = new List<UserDebt>(); // Store filtered debts
+    private List<UserTransaction> transactions = new List<UserTransaction>();
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,6 +177,10 @@ else
             {
                 userBalance = await userBalanceService.GetUserBalanceAsync(user.UserId);
                 debts = await debtService.GetDebtsByUserIdAsync(user.UserId);
+                filteredDebts = debts.OrderByDescending(debt => debt.TotalDebtAmount).Take(5).ToList(); // Initialize filtered debts with sorted debts initially
+                transactions = await transactionService.GetTransactionsByUserIdAsync(user.UserId); // Fetch transactions
+
+
             }
 
             userName = user?.UserName ?? "Guest";
@@ -155,170 +193,46 @@ else
             Console.WriteLine($"Error loading dashboard: {ex.Message}");
         }
     }
+
+    private void ResetFilters()
+    {
+        // Reset date range
+        filterStartDate = null;
+        filterEndDate = null;
+
+
+        // Reset filtered transactions to the full list
+        filteredDebts = new List<UserDebt>(debts); // Reset filtered debts to all debts
+        StateHasChanged(); // Refresh the UI
+    }
+    private void FilterStartDate(ChangeEventArgs e)
+    {
+        filterStartDate = DateTime.TryParse(e.Value?.ToString(), out var date) ? date : null;
+        ApplyFilters();
+    }
+
+    private void FilterEndDate(ChangeEventArgs e)
+    {
+        filterEndDate = DateTime.TryParse(e.Value?.ToString(), out var date) ? date : null;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        // Filter debts based on date range
+        if (debts != null)
+            if (debts != null)
+            {
+                filteredDebts = debts.Where(debt =>
+                    (!filterStartDate.HasValue || debt.DueDate >= filterStartDate.Value) &&
+                    (!filterEndDate.HasValue || debt.DueDate <= filterEndDate.Value)
+                ).ToList();
+            }
+
+        StateHasChanged(); // Refresh the UI after applying filters
+    }
+
 }
 
 
 
-@* @code { *@
-@*     private PieChart pieChart = default!; *@
-@*     private PieChartOptions pieChartOptions = default!; *@
-@*     private ChartData chartData = default!; *@
-@*     private string[]? backgroundColors; *@
-
-@*     private int datasetsCount = 0; *@
-@*     private int dataLabelsCount = 0; *@
-
-@*     private Random random = new(); *@
-
-@*     protected override void OnInitialized() *@
-@*     { *@
-@*         backgroundColors = ColorUtility.CategoricalTwelveColors; *@
-@*         chartData = new ChartData { Labels = GetDefaultDataLabels(4), Datasets = GetDefaultDataSets(1) }; *@
-
-@*         pieChartOptions = new(); *@
-@*         pieChartOptions.Responsive = true; *@
-@*         pieChartOptions.Plugins.Title!.Text = "Debts-Chart"; *@
-@*         pieChartOptions.Plugins.Title.Display = true; *@
-@*     } *@
-
-@*     protected override async Task OnAfterRenderAsync(bool firstRender) *@
-@*     { *@
-@*         if (firstRender) *@
-@*         { *@
-@*             await pieChart.InitializeAsync(chartData, pieChartOptions); *@
-@*         } *@
-@*         await base.OnAfterRenderAsync(firstRender); *@
-@*     } *@
-
-@*     private async Task RandomizeAsync() *@
-@*     { *@
-@*         if (chartData is null || chartData.Datasets is null || !chartData.Datasets.Any()) return; *@
-
-@*         var newDatasets = new List<IChartDataset>(); *@
-
-@*         foreach (var dataset in chartData.Datasets) *@
-@*         { *@
-@*             if (dataset is PieChartDataset pieChartDataset *@
-@*                 && pieChartDataset is not null *@
-@*                 && pieChartDataset.Data is not null) *@
-@*             { *@
-@*                 var count = pieChartDataset.Data.Count; *@
-
-@*                 var newData = new List<double?>(); *@
-@*                 for (var i = 0; i < count; i++) *@
-@*                 { *@
-@*                     newData.Add(random.Next(0, 100)); *@
-@*                 } *@
-
-@*                 pieChartDataset.Data = newData; *@
-@*                 newDatasets.Add(pieChartDataset); *@
-@*             } *@
-@*         } *@
-
-@*         chartData.Datasets = newDatasets; *@
-
-@*         await pieChart.UpdateAsync(chartData, pieChartOptions); *@
-@*     } *@
-
-@*     private async Task AddDatasetAsync() *@
-@*     { *@
-@*         if (chartData is null || chartData.Datasets is null) return; *@
-
-@*         var chartDataset = GetRandomPieChartDataset(); *@
-@*         chartData = await pieChart.AddDatasetAsync(chartData, chartDataset, pieChartOptions); *@
-@*     } *@
-
-@*     private async Task AddDataAsync() *@
-@*     { *@
-@*         if (dataLabelsCount >= 12) *@
-@*             return; *@
-
-@*         if (chartData is null || chartData.Datasets is null) *@
-@*             return; *@
-
-@*         var data = new List<IChartDatasetData>(); *@
-@*         foreach (var dataset in chartData.Datasets) *@
-@*         { *@
-@*             if (dataset is PieChartDataset pieChartDataset) *@
-@*                 data.Add(new PieChartDatasetData(pieChartDataset.Label, random.Next(0, 100), backgroundColors![dataLabelsCount])); *@
-@*         } *@
-
-@*         chartData = await pieChart.AddDataAsync(chartData, GetNextDataLabel(), data); *@
-
-@*         dataLabelsCount += 1; *@
-@*     } *@
-
-@*     #region Data Preparation *@
-
-@*     private List<IChartDataset> GetDefaultDataSets(int numberOfDatasets) *@
-@*     { *@
-@*         var datasets = new List<IChartDataset>(); *@
-
-@*         if (debts != null && debts.Any()) *@
-@*         { *@
-@*             var labels = debts.Select(debt => debt.DebtTitle).ToList();  // Debt titles for chart labels *@
-@*             var data = debts.Select(debt => (double?)debt.RemainingAmount).ToList();  // Remaining amounts for chart data *@
-
-@*             var dataset = new PieChartDataset *@
-@*                 { *@
-@*                     Label = "Debts", *@
-@*                     Data = data, *@
-@*                     BackgroundColor = backgroundColors!.Take(debts.Count).ToList() *@
-@*                 }; *@
-
-@*             datasets.Add(dataset); *@
-@*         } *@
-@*         else *@
-@*         { *@
-@*             Console.WriteLine("Debts data is null or empty."); *@
-@*         } *@
-
-@*         return datasets; *@
-@*     } *@
-
-@*     private PieChartDataset GetRandomPieChartDataset() *@
-@*     { *@
-@*         datasetsCount += 1; *@
-@*         return new() { Label = $"Team {datasetsCount}", Data = GetRandomData(), BackgroundColor = GetRandomBackgroundColors() }; *@
-@*     } *@
-
-@*     private List<double?> GetRandomData() *@
-@*     { *@
-@*         var data = new List<double?>(); *@
-@*         for (var index = 0; index < dataLabelsCount; index++) *@
-@*         { *@
-@*             data.Add(random.Next(0, 100)); *@
-@*         } *@
-
-@*         return data; *@
-@*     } *@
-
-@*     private List<string> GetRandomBackgroundColors() *@
-@*     { *@
-@*         var colors = new List<string>(); *@
-@*         for (var index = 0; index < dataLabelsCount; index++) *@
-@*         { *@
-@*             colors.Add(backgroundColors![index]); *@
-@*         } *@
-
-@*         return colors; *@
-@*     } *@
-
-@*     private List<string> GetDefaultDataLabels(int numberOfLabels) *@
-@*     { *@
-@*         var labels = new List<string>(); *@
-@*         for (var index = 0; index < numberOfLabels; index++) *@
-@*         { *@
-@*             labels.Add(GetNextDataLabel()); *@
-@*             dataLabelsCount += 1; *@
-@*         } *@
-
-@*         return labels; *@
-@*     } *@
-
-@*     private string GetNextDataLabel() => $"Product {dataLabelsCount + 1}"; *@
-
-@*     private string GetNextDataBackgrounfColor() => backgroundColors![dataLabelsCount]; *@
-
-@*     #endregion  Data Preparation *@
-@* } *@

@@ -140,3 +140,29 @@
     background-color: white;
 /*    height: 470px;*/
 }
+
+.own-btn-secondary {
+    color: black;
+    font-weight: bold;
+    border: none;
+    padding: 7px 9px;
+    border-radius: 5px;
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .own-btn-secondary i {
+        margin-right: 5px; /* Space between icon and text */
+    }
+
+    .own-btn-secondary:hover {
+        background-color: #5a6268; /* Darker shade on hover */
+    }
+
+    .own-btn-secondary:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5); /* Blue outline on focus */
+    }
