@@ -31,13 +31,14 @@
             </div>
             <div class="filters">
                 <div class="filter-buttons">
-                    
                 </div>
                 <div class="search">
-                    <input type="text" class="search-input" placeholder="Find Transaction...">
-                    <button class="search-clear-btn">
+                    <input type="text" class="search-input" @bind="searchQuery" @oninput="OnSearchChanged" placeholder="Find Transaction..." />
+
+                    <button class="search-clear-btn" @onclick="ClearSearch">
                         <i class="bi bi-x-circle"></i>
                     </button>
+
                 </div>
             </div>
 
@@ -65,7 +66,7 @@
                     </thead>
 
                     <tbody>
-                        @foreach (var debt in allUserDebts)
+                        @foreach (var debt in filteredDebts)
                         {
                             <tr>
                                 <td>@debt.DebtTitle</td>
@@ -86,6 +87,7 @@
                             </tr>
                         }
                     </tbody>
+
                 </table>
             </div>
         </div>
@@ -171,6 +173,10 @@
     private bool isSortAscending = true; // Toggle for sorting order
     private bool isSortStatusAscending = true; // Toggle for sorting status order
     private bool isSortDateAscending = true; // This will track the sort order for due date
+    private string searchQuery = string.Empty; // Added for search functionality
+    private List<UserDebt> filteredDebts = new List<UserDebt>(); // Initialize to avoid null reference
+
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -199,7 +205,7 @@
             try
             {
                 await debtsServices.AddDebtAsync(newUserDebt);
-                
+
                 decimal totalDebtAmount = newUserDebt.TotalDebtAmount;
                 var allDebts = await debtsServices.GetDebtsByUserIdAsync(user.UserId);
                 totalDebtAmount = allDebts.Sum(debt => debt.TotalDebtAmount);
@@ -209,7 +215,7 @@
                 decimal availableBalanceWithDebt = userBalance.AvailableBalance + totalDebtAmount - newUserDebt.PaidAmount;
                 await userBalanceService.UpdateUserBalanceAsync(user.UserId, availableBalanceWithDebt, "Debts");
 
-                
+
                 newUserDebt = new UserDebt();
                 await LoadDebts();
                 HideAddDebtModal();
@@ -228,6 +234,7 @@
         if (user != null)
         {
             allUserDebts = await debtsServices.GetDebtsByUserIdAsync(user.UserId);
+            ApplyFilters(); // Apply filters after loading debts
         }
     }
 
@@ -358,31 +365,54 @@
     }
 
 
-    private void SortDebtsByDate()
+    private void ApplyFilters()
     {
-        // Toggle the sorting order
-        if (isSortDateAscending)
-        {
-            allUserDebts = allUserDebts.OrderBy(debt => debt.DueDate).ToList(); // Sort by date ascending
-        }
-        else
-        {
-            allUserDebts = allUserDebts.OrderByDescending(debt => debt.DueDate).ToList(); // Sort by date descending
-        }
+        // Apply the search filter based on debt title
+        filteredDebts = allUserDebts
+            .Where(debt => string.IsNullOrEmpty(searchQuery) || debt.DebtTitle.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
-        // Toggle the boolean flag for next sort order
-        isSortDateAscending = !isSortDateAscending;
+        // Apply sorting by due date
+        filteredDebts = isSortDateAscending
+            ? filteredDebts.OrderBy(debt => debt.DueDate).ToList() // Sort by date ascending
+            : filteredDebts.OrderByDescending(debt => debt.DueDate).ToList(); // Sort by date descending
+
+        // Apply sorting by debt status
+        filteredDebts = isSortStatusAscending
+            ? filteredDebts.OrderBy(debt => debt.DebtStatus).ToList()
+            : filteredDebts.OrderByDescending(debt => debt.DebtStatus).ToList();
+
+        StateHasChanged(); // Refresh the UI with updated filtered list
     }
 
 
 
+    private void SortDebtsByDate()
+    {
+        // Toggle the sorting order for date
+        isSortDateAscending = !isSortDateAscending;
+        ApplyFilters(); // Apply filters after sorting by date
+    }
+
     private void SortDebtsByStatus()
     {
-        allUserDebts = isSortStatusAscending
-            ? allUserDebts.OrderBy(debt => debt.DebtStatus).ToList()
-            : allUserDebts.OrderByDescending(debt => debt.DebtStatus).ToList();
-
+        // Toggle the sorting order for status
         isSortStatusAscending = !isSortStatusAscending;
+        ApplyFilters(); // Apply filters after sorting by status
+    }
+
+    // Add event handler to update the search query and apply filters
+    private void OnSearchChanged(ChangeEventArgs e)
+    {
+        searchQuery = e.Value.ToString(); // Update search query with the new value
+        ApplyFilters(); // Reapply filters with the updated search query
+    }
+
+
+    private void ClearSearch()
+    {
+        searchQuery = string.Empty;  // Clear search query
+        ApplyFilters(); // Reapply filters to show all debts
     }
 
 
