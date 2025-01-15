@@ -26,6 +26,8 @@ namespace FinLY
             builder.Services.AddTransient<IDebtsServices, DebtsServices>();
             builder.Services.AddTransient<IUserBalanceServicees, UserBalawnceServicees>();
 
+            builder.Services.AddBlazorBootstrap();
+
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();

@@ -3,22 +3,123 @@
 @using FinLY.Services
 @inject AuthenticationStateService AuthService
 @inject IUserBalanceServicees userBalanceService
+@inject IDebtsServices debtService
 
 @if (userBalance != null)
 {
-    <div class="top-nav">
-        <div class="dash-left-side">
-            <p>Welcome, @userName</p>
+    <div class="top-bar">
+
+        <div class="top-nav">
+            <div class="dash-left-side">
+                <p>Welcome, @userName</p>
+            </div>
+            <div class="dash-right-side">
+                <p>@todayDate</p>
+            </div>
         </div>
-        <div class="dash-right-side">
-            <p>@todayDate</p>
-            <p class="balance-display">Available Balance: @userBalance.AvailableBalance.ToString("C")</p> <!-- Display balance -->
-            <p class="balance-display">Total Cash InFlow: @userBalance.TotalCashInFlow.ToString("C")</p> <!-- Display Total Cash InFlow -->
-            <p class="balance-display">Total Cash OutFlow: @userBalance.TotalCashOutFlow.ToString("C")</p> <!-- Display Total Cash OutFlow -->
-            <p class="balance-display">Total Debt Amount: @userBalance.TotalDebtAmount.ToString("C")</p> <!-- Display Total Debt -->
-            <p class="balance-display">Available Balance with Debt: @userBalance.AvailableBalancewithDebt.ToString("C")</p> <!-- Display Available Balance with Debt -->
-            <p class="balance-display">Remainig Debts: @userBalance.DebtRemainingAmount.ToString("C")</p>
-            <p class="balance-display">Total Cleared Debts: @userBalance.DebtClearedAmount.ToString("C")</p>
+
+        <div class="top-card-info">
+            <div class="card av_balance">
+                <div class="card-top">
+                    <p>@(userBalance?.AvailableBalance.ToString("C") ?? "N/A")</p>
+                </div>
+                <div class="card-btm">
+                    <h4>Net Balance</h4>
+                </div>
+            </div>
+
+            <div class="card av_debt_balance">
+                <div class="card-top">
+                    <p>@(userBalance?.AvailableBalancewithDebt.ToString("C") ?? "N/A")</p>
+                </div>
+                <div class="card-btm">
+                    <h4>Total Balance</h4>
+                </div>
+            </div>
+
+            <div class="card total_inflow">
+                <div class="card-top">
+                    <p>@(userBalance?.TotalCashInFlow.ToString("C") ?? "N/A")</p>
+                </div>
+                <div class="card-btm">
+                    <h4>Total Cash InFlow</h4>
+                </div>
+            </div>
+
+            <div class="card total_outflow">
+                <div class="card-top">
+                    <p>@(userBalance?.TotalCashOutFlow.ToString("C") ?? "N/A")</p>
+                </div>
+                <div class="card-btm">
+                    <h4>Total Cash OutFlow</h4>
+                </div>
+            </div>
+
+            <div class="card total_debt_amount">
+                <div class="card-top">
+                    <p>@(userBalance?.TotalDebtAmount.ToString("C") ?? "N/A")</p>
+                </div>
+                <div class="card-btm">
+                    <h4>Total Debt Amount</h4>
+                </div>
+            </div>
+
+            <div class="card remaining_debts">
+                <div class="card-top">
+                    <p>@(userBalance?.DebtRemainingAmount.ToString("C") ?? "N/A")</p>
+                </div>
+                <div class="card-btm">
+                    <h4>Remaining Debts</h4>
+                </div>
+            </div>
+
+            <div class="card total_cleared_debts">
+                <div class="card-top">
+                    <p>@(userBalance?.DebtClearedAmount.ToString("C") ?? "N/A")</p>
+                </div>
+                <div class="card-btm">
+                    <h4>Total Cleared Debts</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="debts-section">
+        <div class="div_pie">
+            @* <PieChart @ref="pieChart" Width="150" /> *@
+        </div>
+
+        <div class="div_table">
+
+            <h3>Your Debts</h3>
+            @if (debts != null && debts.Any())
+            {
+                <table class="debts-table">
+                    <thead>
+                        <tr>
+                            <th>Debt Name</th>
+                            <th>Total Amount</th>
+                            <th>Remaining Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var debt in debts.Where(d => d.DebtStatus == "Pending"))
+                        {
+                            <tr>
+                                <td>@debt.DebtTitle</td>
+                                <td>@debt.TotalDebtAmount.ToString("C")</td>
+                                <td>@debt.RemainingAmount.ToString("C")</td>
+                                <td>@debt.DebtStatus</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No debts found.</p>
+            }
         </div>
     </div>
 }
@@ -31,17 +132,193 @@ else
     private UserBalance userBalance;
     private string userName;
     private string todayDate;
+    private List<UserDebt> debts;
 
     protected override async Task OnInitializedAsync()
     {
-        var user = AuthService.GetAuthenticatedUser();
-        if (user != null)
+        try
         {
-            // Fetch user balance using the service, assuming it contains the necessary fields
-            userBalance = await userBalanceService.GetUserBalanceAsync(user.UserId);
-        }
+            var user = AuthService.GetAuthenticatedUser();
+            if (user != null)
+            {
+                userBalance = await userBalanceService.GetUserBalanceAsync(user.UserId);
+                debts = await debtService.GetDebtsByUserIdAsync(user.UserId);
+            }
 
-        userName = user?.UserName;
-        todayDate = DateTime.Now.ToString("MMMM dd, yyyy");
+            userName = user?.UserName ?? "Guest";
+            todayDate = DateTime.Now.ToString("MMMM dd, yyyy");
+
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading dashboard: {ex.Message}");
+        }
     }
 }
+
+
+
+@* @code { *@
+@*     private PieChart pieChart = default!; *@
+@*     private PieChartOptions pieChartOptions = default!; *@
+@*     private ChartData chartData = default!; *@
+@*     private string[]? backgroundColors; *@
+
+@*     private int datasetsCount = 0; *@
+@*     private int dataLabelsCount = 0; *@
+
+@*     private Random random = new(); *@
+
+@*     protected override void OnInitialized() *@
+@*     { *@
+@*         backgroundColors = ColorUtility.CategoricalTwelveColors; *@
+@*         chartData = new ChartData { Labels = GetDefaultDataLabels(4), Datasets = GetDefaultDataSets(1) }; *@
+
+@*         pieChartOptions = new(); *@
+@*         pieChartOptions.Responsive = true; *@
+@*         pieChartOptions.Plugins.Title!.Text = "Debts-Chart"; *@
+@*         pieChartOptions.Plugins.Title.Display = true; *@
+@*     } *@
+
+@*     protected override async Task OnAfterRenderAsync(bool firstRender) *@
+@*     { *@
+@*         if (firstRender) *@
+@*         { *@
+@*             await pieChart.InitializeAsync(chartData, pieChartOptions); *@
+@*         } *@
+@*         await base.OnAfterRenderAsync(firstRender); *@
+@*     } *@
+
+@*     private async Task RandomizeAsync() *@
+@*     { *@
+@*         if (chartData is null || chartData.Datasets is null || !chartData.Datasets.Any()) return; *@
+
+@*         var newDatasets = new List<IChartDataset>(); *@
+
+@*         foreach (var dataset in chartData.Datasets) *@
+@*         { *@
+@*             if (dataset is PieChartDataset pieChartDataset *@
+@*                 && pieChartDataset is not null *@
+@*                 && pieChartDataset.Data is not null) *@
+@*             { *@
+@*                 var count = pieChartDataset.Data.Count; *@
+
+@*                 var newData = new List<double?>(); *@
+@*                 for (var i = 0; i < count; i++) *@
+@*                 { *@
+@*                     newData.Add(random.Next(0, 100)); *@
+@*                 } *@
+
+@*                 pieChartDataset.Data = newData; *@
+@*                 newDatasets.Add(pieChartDataset); *@
+@*             } *@
+@*         } *@
+
+@*         chartData.Datasets = newDatasets; *@
+
+@*         await pieChart.UpdateAsync(chartData, pieChartOptions); *@
+@*     } *@
+
+@*     private async Task AddDatasetAsync() *@
+@*     { *@
+@*         if (chartData is null || chartData.Datasets is null) return; *@
+
+@*         var chartDataset = GetRandomPieChartDataset(); *@
+@*         chartData = await pieChart.AddDatasetAsync(chartData, chartDataset, pieChartOptions); *@
+@*     } *@
+
+@*     private async Task AddDataAsync() *@
+@*     { *@
+@*         if (dataLabelsCount >= 12) *@
+@*             return; *@
+
+@*         if (chartData is null || chartData.Datasets is null) *@
+@*             return; *@
+
+@*         var data = new List<IChartDatasetData>(); *@
+@*         foreach (var dataset in chartData.Datasets) *@
+@*         { *@
+@*             if (dataset is PieChartDataset pieChartDataset) *@
+@*                 data.Add(new PieChartDatasetData(pieChartDataset.Label, random.Next(0, 100), backgroundColors![dataLabelsCount])); *@
+@*         } *@
+
+@*         chartData = await pieChart.AddDataAsync(chartData, GetNextDataLabel(), data); *@
+
+@*         dataLabelsCount += 1; *@
+@*     } *@
+
+@*     #region Data Preparation *@
+
+@*     private List<IChartDataset> GetDefaultDataSets(int numberOfDatasets) *@
+@*     { *@
+@*         var datasets = new List<IChartDataset>(); *@
+
+@*         if (debts != null && debts.Any()) *@
+@*         { *@
+@*             var labels = debts.Select(debt => debt.DebtTitle).ToList();  // Debt titles for chart labels *@
+@*             var data = debts.Select(debt => (double?)debt.RemainingAmount).ToList();  // Remaining amounts for chart data *@
+
+@*             var dataset = new PieChartDataset *@
+@*                 { *@
+@*                     Label = "Debts", *@
+@*                     Data = data, *@
+@*                     BackgroundColor = backgroundColors!.Take(debts.Count).ToList() *@
+@*                 }; *@
+
+@*             datasets.Add(dataset); *@
+@*         } *@
+@*         else *@
+@*         { *@
+@*             Console.WriteLine("Debts data is null or empty."); *@
+@*         } *@
+
+@*         return datasets; *@
+@*     } *@
+
+@*     private PieChartDataset GetRandomPieChartDataset() *@
+@*     { *@
+@*         datasetsCount += 1; *@
+@*         return new() { Label = $"Team {datasetsCount}", Data = GetRandomData(), BackgroundColor = GetRandomBackgroundColors() }; *@
+@*     } *@
+
+@*     private List<double?> GetRandomData() *@
+@*     { *@
+@*         var data = new List<double?>(); *@
+@*         for (var index = 0; index < dataLabelsCount; index++) *@
+@*         { *@
+@*             data.Add(random.Next(0, 100)); *@
+@*         } *@
+
+@*         return data; *@
+@*     } *@
+
+@*     private List<string> GetRandomBackgroundColors() *@
+@*     { *@
+@*         var colors = new List<string>(); *@
+@*         for (var index = 0; index < dataLabelsCount; index++) *@
+@*         { *@
+@*             colors.Add(backgroundColors![index]); *@
+@*         } *@
+
+@*         return colors; *@
+@*     } *@
+
+@*     private List<string> GetDefaultDataLabels(int numberOfLabels) *@
+@*     { *@
+@*         var labels = new List<string>(); *@
+@*         for (var index = 0; index < numberOfLabels; index++) *@
+@*         { *@
+@*             labels.Add(GetNextDataLabel()); *@
+@*             dataLabelsCount += 1; *@
+@*         } *@
+
+@*         return labels; *@
+@*     } *@
+
+@*     private string GetNextDataLabel() => $"Product {dataLabelsCount + 1}"; *@
+
+@*     private string GetNextDataBackgrounfColor() => backgroundColors![dataLabelsCount]; *@
+
+@*     #endregion  Data Preparation *@
+@* } *@
