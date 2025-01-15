@@ -49,37 +49,51 @@
                         <th>Amount</th>
                         <th>Tag</th>
                         <th>Note</th>
-                        <th>Date</th>
+                           <th>
+        Date
+        <span @onclick="SortByDate" class="bi" style="cursor: pointer;">
+                                @if (isSortedAscending)
+                                {
+                    <i class="bi bi-arrow-down"></i> <!-- Down Arrow for Descending -->
+                                }
+                                else
+                                {
+                    <i class="bi bi-arrow-up"></i> <!-- Up Arrow for Ascending -->
+                                }
+        </span>
+    </th>
+
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                   <tbody>
                     @if (userTransactions.Count > 0)
                     {
                         @foreach (var transaction in userTransactions)
                         {
-                            <tr>
-                                <td>@transaction.TransactionTitle</td>
-                                <td>@transaction.TransactionType</td>
-                                <td>@transaction.Amounts</td>
-                                <td>@transaction.Tag</td>
-                                <td>@transaction.Note</td>
-                                <td>@transaction.TransactionDate?.ToString("yyyy-MM-dd")</td>
-                                <td>
-                                    <button @onclick="() => EditTransaction(transaction)" class="btn btn-warning" data-bs-toggle="offcanvas" data-bs-target="#editTransactionOffcanvas">
-                                        Edit
-                                    </button>
-                                </td>
-                            </tr>
+                        <tr>
+                            <td>@transaction.TransactionTitle</td>
+                            <td>@transaction.TransactionType</td>
+                            <td>@transaction.Amounts</td>
+                            <td>@transaction.Tag</td>
+                            <td>@transaction.Note</td>
+                            <td>@transaction.TransactionDate?.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                <button @onclick="() => EditTransaction(transaction)" class="btn btn-warning" data-bs-toggle="offcanvas" data-bs-target="#editTransactionOffcanvas">
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
                         }
                     }
                     else
                     {
-                        <tr>
-                            <td colspan="6" class="text-center">No transactions found.</td>
-                        </tr>
+                <tr>
+                    <td colspan="6" class="text-center">No transactions found.</td>
+                </tr>
                     }
-                </tbody>
+    </tbody>
+
             </table>
         </div>
     </div>
@@ -232,6 +246,8 @@
     private string offcanvasClass => isOffcanvasOpen ? "show" : "";
     private bool isOffcanvasOpen = false; // Controls the offcanvas visibility
     private string errorMessage;
+    private bool isSortedAscending = false;
+    private List<UserTransaction> sortedTransactions = new List<UserTransaction>();
 
 
 
@@ -249,6 +265,7 @@
 
             newTransaction.UserId = user?.UserId ?? Guid.Empty;
             newTransaction.TransactionType = "InFlow";
+            SortByDate();
 
             if (user != null)
             {
@@ -385,5 +402,24 @@
             Console.WriteLine($"Error updating transaction: {ex.Message}");
         }
     }
+
+    private void SortByDate()
+    {
+        // Toggle the sorting order
+        isSortedAscending = !isSortedAscending;
+
+        // Sort the transactions based on the selected order
+        if (isSortedAscending)
+        {
+            sortedTransactions = userTransactions.OrderBy(t => t.TransactionDate).ToList();
+        }
+        else
+        {
+            sortedTransactions = userTransactions.OrderByDescending(t => t.TransactionDate).ToList();
+        }
+
+        StateHasChanged(); // Refresh the UI after sorting
+    }
+
 
 }
