@@ -51,7 +51,7 @@
                         <th>Note</th>
                         <th>
                             Date
-                            <span @onclick="SortByDate" class="bi" style="cursor: pointer;">
+                            <span class="bi" style="cursor: pointer;">
                                 @if (isSortedAscending)
                                 {
                                     <i class="bi bi-arrow-down"></i> <!-- Down Arrow for Descending -->
@@ -67,9 +67,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (userTransactions.Count > 0)
+                    @if (filteredTransactions.Count > 0)
                     {
-                        @foreach (var transaction in userTransactions)
+                        @foreach (var transaction in filteredTransactions)
                         {
                             <tr>
                                 <td>@transaction.TransactionTitle</td>
@@ -89,10 +89,11 @@
                     else
                     {
                         <tr>
-                            <td colspan="6" class="text-center">No transactions found.</td>
+                            <td colspan="7" class="text-center">No transactions found.</td>
                         </tr>
                     }
                 </tbody>
+
 
             </table>
         </div>
@@ -261,7 +262,8 @@
     private bool isOffcanvasOpen = false; // Controls the offcanvas visibility
     private string errorMessage;
     private bool isSortedAscending = false;
-    private List<UserTransaction> sortedTransactions = new List<UserTransaction>();
+    private List<UserTransaction> filteredTransactions = new List<UserTransaction>();
+
 
 
 
@@ -279,16 +281,14 @@
 
             newTransaction.UserId = user?.UserId ?? Guid.Empty;
             newTransaction.TransactionType = "InFlow";
-            SortByDate();
 
             if (user != null)
             {
                 userName = user.UserName;
                 allTags = await TagsServices.GetTagsByUserIdAsync(user.UserId);
 
-                // Load all transactions for the authenticated user
                 userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(user.UserId);
-
+                filteredTransactions = new List<UserTransaction>(userTransactions);
                 userBalance = await UserBalawnceServicees.GetUserBalanceAsync(user.UserId);
             }
         }
@@ -359,11 +359,7 @@
         newTransaction.TransactionType = transactionType;
     }
 
-    private void SetTagSelected(string tagName)
-    {
-        selectedTag = selectedTag == tagName ? string.Empty : tagName;
-        newTransaction.Tag = selectedTag;
-    }
+   
 
     private string GetTagClass(string tagName)
     {
@@ -417,23 +413,27 @@
         }
     }
 
-    private void SortByDate()
+    private void SetTagSelected(string tagName)
     {
-        // Toggle the sorting order
-        isSortedAscending = !isSortedAscending;
+        selectedTag = selectedTag == tagName ? string.Empty : tagName;
+        newTransaction.Tag = selectedTag;
 
-        // Sort the transactions based on the selected order
-        if (isSortedAscending)
+        // Filter transactions based on the selected tag
+        if (string.IsNullOrEmpty(selectedTag))
         {
-            sortedTransactions = userTransactions.OrderBy(t => t.TransactionDate).ToList();
+            // If no tag is selected, show all transactions
+            filteredTransactions = new List<UserTransaction>(userTransactions);
         }
         else
         {
-            sortedTransactions = userTransactions.OrderByDescending(t => t.TransactionDate).ToList();
+            // Filter transactions by the selected tag
+            filteredTransactions = userTransactions.Where(t => t.Tag == selectedTag).ToList();
         }
 
-        StateHasChanged(); // Refresh the UI after sorting
+        StateHasChanged(); // Refresh the UI
     }
+
+  
 
 
 }
