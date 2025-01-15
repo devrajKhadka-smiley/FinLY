@@ -11,7 +11,6 @@ namespace FinLY.Services
     {
         Task<UserBalance> GetUserBalanceAsync(Guid userId);
         Task UpdateUserBalanceAsync(Guid userId, decimal amount, string transactionType);
-
-
+        Task UpdateTotalClearedDebtAmountAsync(Guid userId, decimal totalClearedDebtAmount);  
     }
 }

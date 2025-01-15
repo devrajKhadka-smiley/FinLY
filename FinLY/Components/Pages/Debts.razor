@@ -269,6 +269,15 @@
                 // Update debt information in the debts service
                 await debtsServices.UpdateDebtAsync(debt);
 
+                // Update the user balance
+                await userBalanceService.UpdateTotalClearedDebtAmountAsync(debt.UserId, userBalance.DebtClearedAmount);
+                // Calculate the total cleared debt amount (sum of PaidAmounts where DebtStatus is "Paid")
+                var allDebts = await debtsServices.GetDebtsByUserIdAsync(debt.UserId);
+                decimal totalClearedDebtAmount = allDebts.Where(d => d.DebtStatus == "Paid").Sum(d => d.PaidAmount);
+
+                // Update the user balance with the total cleared debt amount
+                await userBalanceService.UpdateTotalClearedDebtAmountAsync(debt.UserId, totalClearedDebtAmount);
+
                 // Reload debts after payment
                 await LoadDebts();
             }
@@ -284,6 +293,7 @@
             ErrorMessage = $"Error paying debt: {ex.Message}";
         }
     }
+
 
 
     private void ShowEditDebtOffcanvas(UserDebt debt)

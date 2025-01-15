@@ -14,6 +14,7 @@ namespace FinLY.Services
     {
         private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseUserBalance.json");
         private readonly IDebtsServices debtsServices;
+        private readonly IUserBalanceServicees userBalanceServicees;
 
         public UserBalawnceServicees(IDebtsServices debtsServices)
         {
@@ -120,5 +121,19 @@ namespace FinLY.Services
             var json = JsonSerializer.Serialize(balances, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(FinLyFilePath, json);
         }
+
+        public async Task UpdateTotalClearedDebtAmountAsync(Guid userId, decimal totalClearedDebtAmount)
+        {
+            var balances = await LoadAllBalancesAsync();
+            var userBalance = balances.FirstOrDefault(b => b.UserId == userId);
+
+            if (userBalance != null)
+            {
+                userBalance.DebtClearedAmount = totalClearedDebtAmount;
+                await SaveAllBalancesAsync(balances);
+            }
+        }
+
+
     }
 }
