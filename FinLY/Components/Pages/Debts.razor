@@ -31,8 +31,7 @@
             </div>
             <div class="filters">
                 <div class="filter-buttons">
-                    <button class="outline-btn">Sort by Date</button>
-                    <button class="outline-btn">Cleared</button>
+                    
                 </div>
                 <div class="search">
                     <input type="text" class="search-input" placeholder="Find Transaction...">
@@ -51,11 +50,16 @@
                             <th>Remaining Amount</th>
                             <th @onclick="SortDebtsByDate" style="cursor: pointer;">
                                 Due Date
-                                <i class="bi @(isSortAscending ? "bi-caret-up-fill" : "bi-caret-down-fill")"></i>
+                                <i class="bi @(isSortDateAscending ? "bi-caret-up-fill" : "bi-caret-down-fill")"></i>
                             </th>
+
                             <th>Source From</th>
                             <th>Note</th>
-                            <th>Status</th>
+                            <th @onclick="SortDebtsByStatus" style="cursor: pointer;">
+                                Status
+                                <i class="bi @(isSortStatusAscending ? "bi-caret-up-fill" : "bi-caret-down-fill")" style="float: right;"></i>
+                            </th>
+
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -165,6 +169,8 @@
     private bool isEditDebtVisible = false;
     private string ErrorMessage { get; set; } = string.Empty;
     private bool isSortAscending = true; // Toggle for sorting order
+    private bool isSortStatusAscending = true; // Toggle for sorting status order
+    private bool isSortDateAscending = true; // This will track the sort order for due date
 
     protected override async Task OnInitializedAsync()
     {
@@ -354,17 +360,31 @@
 
     private void SortDebtsByDate()
     {
-        if (isSortAscending)
+        // Toggle the sorting order
+        if (isSortDateAscending)
         {
-            allUserDebts = allUserDebts.OrderBy(debt => debt.DueDate).ToList();
+            allUserDebts = allUserDebts.OrderBy(debt => debt.DueDate).ToList(); // Sort by date ascending
         }
         else
         {
-            allUserDebts = allUserDebts.OrderByDescending(debt => debt.DueDate).ToList();
+            allUserDebts = allUserDebts.OrderByDescending(debt => debt.DueDate).ToList(); // Sort by date descending
         }
 
-        isSortAscending = !isSortAscending; // Toggle sorting order
+        // Toggle the boolean flag for next sort order
+        isSortDateAscending = !isSortDateAscending;
     }
+
+
+
+    private void SortDebtsByStatus()
+    {
+        allUserDebts = isSortStatusAscending
+            ? allUserDebts.OrderBy(debt => debt.DebtStatus).ToList()
+            : allUserDebts.OrderByDescending(debt => debt.DebtStatus).ToList();
+
+        isSortStatusAscending = !isSortStatusAscending;
+    }
+
 
 }
 
