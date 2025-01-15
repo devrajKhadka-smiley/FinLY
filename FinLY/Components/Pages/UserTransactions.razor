@@ -49,52 +49,66 @@
                         <th>Amount</th>
                         <th>Tag</th>
                         <th>Note</th>
-                           <th>
-        Date
-        <span @onclick="SortByDate" class="bi" style="cursor: pointer;">
+                        <th>
+                            Date
+                            <span @onclick="SortByDate" class="bi" style="cursor: pointer;">
                                 @if (isSortedAscending)
                                 {
-                    <i class="bi bi-arrow-down"></i> <!-- Down Arrow for Descending -->
+                                    <i class="bi bi-arrow-down"></i> <!-- Down Arrow for Descending -->
                                 }
                                 else
                                 {
-                    <i class="bi bi-arrow-up"></i> <!-- Up Arrow for Ascending -->
+                                    <i class="bi bi-arrow-up"></i> <!-- Up Arrow for Ascending -->
                                 }
-        </span>
-    </th>
+                            </span>
+                        </th>
 
                         <th>Actions</th>
                     </tr>
                 </thead>
-                   <tbody>
+                <tbody>
                     @if (userTransactions.Count > 0)
                     {
                         @foreach (var transaction in userTransactions)
                         {
-                        <tr>
-                            <td>@transaction.TransactionTitle</td>
-                            <td>@transaction.TransactionType</td>
-                            <td>@transaction.Amounts</td>
-                            <td>@transaction.Tag</td>
-                            <td>@transaction.Note</td>
-                            <td>@transaction.TransactionDate?.ToString("yyyy-MM-dd")</td>
-                            <td>
-                                <button @onclick="() => EditTransaction(transaction)" class="btn btn-warning" data-bs-toggle="offcanvas" data-bs-target="#editTransactionOffcanvas">
-                                    Edit
-                                </button>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td>@transaction.TransactionTitle</td>
+                                <td>@transaction.TransactionType</td>
+                                <td>@transaction.Amounts</td>
+                                <td>@transaction.Tag</td>
+                                <td>@transaction.Note</td>
+                                <td>@transaction.TransactionDate?.ToString("yyyy-MM-dd")</td>
+                                <td>
+                                    <button @onclick="() => EditTransaction(transaction)" class="btn btn-warning" data-bs-toggle="offcanvas" data-bs-target="#editTransactionOffcanvas">
+                                        Edit
+                                    </button>
+                                </td>
+                            </tr>
                         }
                     }
                     else
                     {
-                <tr>
-                    <td colspan="6" class="text-center">No transactions found.</td>
-                </tr>
+                        <tr>
+                            <td colspan="6" class="text-center">No transactions found.</td>
+                        </tr>
                     }
-    </tbody>
+                </tbody>
 
             </table>
+        </div>
+    </div>
+    <div class="transaction_tag">
+        <div class="mb-3">
+            <h3 for="transactionTag" class="form-label">Tag Filters</h3>
+            <div id="transactionTag" class="scrollable-tags">
+                @foreach (var tag in allTags)
+                {
+                    <div @onclick="() => SetTagSelected(tag.TagName)"
+                         class="tag-item @(selectedTag == tag.TagName ? "selected" : "")">
+                        <label for="tag_@tag.TagName">@tag.TagName</label>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 
@@ -241,7 +255,7 @@
     private string selectedTag = string.Empty;
     private bool isError = false;
     private bool isModalOpen = false;
-    private string modalClass => isModalOpen ? "show d-block" : "fade"; 
+    private string modalClass => isModalOpen ? "show d-block" : "fade";
     private UserBalance userBalance = new UserBalance();
     private string offcanvasClass => isOffcanvasOpen ? "show" : "";
     private bool isOffcanvasOpen = false; // Controls the offcanvas visibility
@@ -284,7 +298,7 @@
         }
     }
 
-  
+
 
     private void OpenAddTransactionModal()
     {
@@ -348,7 +362,7 @@
     private void SetTagSelected(string tagName)
     {
         selectedTag = selectedTag == tagName ? string.Empty : tagName;
-        newTransaction.Tag = selectedTag; 
+        newTransaction.Tag = selectedTag;
     }
 
     private string GetTagClass(string tagName)
@@ -395,7 +409,7 @@
             CloseEditTransactionOffcanvas(); // Ensure this method closes the offcanvas
             StateHasChanged();
 
-          
+
         }
         catch (Exception ex)
         {

@@ -4,6 +4,7 @@
     border-radius: 10px;
     margin-top: 20px;
     background-color: white;
+    height: 470px;
 }
 
 .transaction_header {
@@ -129,3 +130,13 @@
         color: white; /* Selected text color */
         border-color: #0056b3; /* Selected border color */
     }
+
+.transaction_tag {
+    background-color: white;
+    padding: 20px;
+    max-width: 1200px;
+    border-radius: 10px;
+    margin-top: 10px;
+    background-color: white;
+/*    height: 470px;*/
+}
