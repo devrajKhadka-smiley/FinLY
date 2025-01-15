@@ -49,13 +49,17 @@
                             <th>Debt Title</th>
                             <th>Total Debt Amount</th>
                             <th>Remaining Amount</th>
-                            <th>Due Date</th>
+                            <th @onclick="SortDebtsByDate" style="cursor: pointer;">
+                                Due Date
+                                <i class="bi @(isSortAscending ? "bi-caret-up-fill" : "bi-caret-down-fill")"></i>
+                            </th>
                             <th>Source From</th>
                             <th>Note</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         @foreach (var debt in allUserDebts)
                         {
@@ -160,6 +164,7 @@
     private bool isAddDebtModalVisible = false;
     private bool isEditDebtVisible = false;
     private string ErrorMessage { get; set; } = string.Empty;
+    private bool isSortAscending = true; // Toggle for sorting order
 
     protected override async Task OnInitializedAsync()
     {
@@ -345,5 +350,21 @@
     {
         isAddDebtModalVisible = false;
     }
+
+
+    private void SortDebtsByDate()
+    {
+        if (isSortAscending)
+        {
+            allUserDebts = allUserDebts.OrderBy(debt => debt.DueDate).ToList();
+        }
+        else
+        {
+            allUserDebts = allUserDebts.OrderByDescending(debt => debt.DueDate).ToList();
+        }
+
+        isSortAscending = !isSortAscending; // Toggle sorting order
+    }
+
 }
 

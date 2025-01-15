@@ -28,13 +28,15 @@
         <hr style="border: none; height: 2px; background-color: black;">
         <div class="transaction_filters">
             <div class="filter-buttons d-flex align-items-center">
-                <input type="date" class="form-control filter-input" required />
-                <input type="date" class="form-control filter-input" required />
+                <input type="date" class="form-control filter-input" value="@filterStartDate?.ToString("yyyy-MM-dd")" @onchange="FilterStartDate" required />
+                <input type="date" class="form-control filter-input" value="@filterEndDate?.ToString("yyyy-MM-dd")" @onchange="FilterEndDate" required />
+                <button class="btn btn-secondary" @onclick="ResetFilters">Reset Filters</button>
+
             </div>
 
             <div class="search d-flex align-items-center">
                 <input type="text" class="search-input form-control" placeholder="Find Transaction by Title..."
-                       @oninput="OnSearchQueryChanged" />
+                @oninput="OnSearchQueryChanged" />
                 <button class="search-clear-btn btn btn-outline-secondary" @onclick="ClearSearch">
                     <i class="bi bi-x-circle"></i>
                 </button>
@@ -47,23 +49,37 @@
                 <thead>
                     <tr>
                         <th>Title</th>
-                        <th>Type</th>
+                        <th>
+                            Type
+                            <span class="bi" style="cursor: pointer;" @onclick="SortByType">
+                                @if (isTypeSortedAscending)
+                                {
+                                    <i class="bi bi-arrow-up"></i> <!-- Up Arrow for Ascending -->
+                                }
+                                else
+                                {
+                                    <i class="bi bi-arrow-down"></i> <!-- Down Arrow for Descending -->
+                                }
+                            </span>
+                        </th>
+
                         <th>Amount</th>
                         <th>Tag</th>
                         <th>Note</th>
                         <th>
                             Date
-                            <span class="bi" style="cursor: pointer;">
+                            <span class="bi" style="cursor: pointer;" @onclick="SortByDate">
                                 @if (isSortedAscending)
-                                {
-                                    <i class="bi bi-arrow-down"></i> <!-- Down Arrow for Descending -->
-                                }
-                                else
                                 {
                                     <i class="bi bi-arrow-up"></i> <!-- Up Arrow for Ascending -->
                                 }
+                                else
+                                {
+                                    <i class="bi bi-arrow-down"></i> <!-- Down Arrow for Descending -->
+                                }
                             </span>
                         </th>
+
 
                         <th>Actions</th>
                     </tr>
@@ -103,12 +119,12 @@
     </div>
     <div class="transaction_tag">
         <div class="mb-3">
-            <h3 for="transactionTag" class="form-label">Tag Filters</h3>
+            <h3 for="transactionTag" class="form-label">Tag Filters</h3>   
             <div id="transactionTag" class="scrollable-tags">
                 @foreach (var tag in allTags)
                 {
                     <div @onclick="() => SetTagSelected(tag.TagName)"
-                         class="tag-item @(selectedTag == tag.TagName ? "selected" : "")">
+                    class="tag-item @(selectedTag == tag.TagName ? "selected" : "")">
                         <label for="tag_@tag.TagName">@tag.TagName</label>
                     </div>
                 }
@@ -180,13 +196,13 @@
                                 <label for="transactionType" class="form-label">Transaction Type</label>
                                 <div class="btn-group w-100" role="group">
                                     <button type="button"
-                                            class="btn @(newTransaction.TransactionType == "InFlow" ? "btn-primary" : "btn-outline-primary")"
-                                            @onclick='() => SetTransactionType("InFlow")'>
+                                    class="btn @(newTransaction.TransactionType == "InFlow" ? "btn-primary" : "btn-outline-primary")"
+                                    @onclick='() => SetTransactionType("InFlow")'>
                                         InFlow
                                     </button>
                                     <button type="button"
-                                            class="btn @(newTransaction.TransactionType == "OutFlow" ? "btn-primary" : "btn-outline-primary")"
-                                            @onclick='() => SetTransactionType("OutFlow")'>
+                                    class="btn @(newTransaction.TransactionType == "OutFlow" ? "btn-primary" : "btn-outline-primary")"
+                                    @onclick='() => SetTransactionType("OutFlow")'>
                                         OutFlow
                                     </button>
                                 </div>
@@ -228,7 +244,7 @@
                                 @foreach (var tag in allTags)
                                 {
                                     <div @onclick="() => SetTagSelected(tag.TagName)"
-                                         class="tag-item @(selectedTag == tag.TagName ? "selected" : "")">
+                                    class="tag-item @(selectedTag == tag.TagName ? "selected" : "")">
                                         <label for="tag_@tag.TagName">@tag.TagName</label>
                                     </div>
                                 }
@@ -264,10 +280,12 @@
     private string offcanvasClass => isOffcanvasOpen ? "show" : "";
     private bool isOffcanvasOpen = false; // Controls the offcanvas visibility
     private string errorMessage;
-    private bool isSortedAscending = false;
     private List<UserTransaction> filteredTransactions = new List<UserTransaction>();
     private string searchQuery = string.Empty; // To store the search query
-    
+    private bool isSortedAscending = false; // Tracks sorting order for dates
+    private DateTime? filterStartDate;
+    private DateTime? filterEndDate;
+    private bool isTypeSortedAscending = false; // Tracks sorting order for type
 
 
 
@@ -364,7 +382,7 @@
         newTransaction.TransactionType = transactionType;
     }
 
-   
+
 
     private string GetTagClass(string tagName)
     {
@@ -420,14 +438,32 @@
 
     private void ApplyFilters()
     {
+        // Filter transactions based on selected filters
         filteredTransactions = userTransactions
             .Where(t =>
                 (string.IsNullOrEmpty(selectedTag) || t.Tag == selectedTag) &&
-                (string.IsNullOrEmpty(searchQuery) || t.TransactionTitle.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
+                (string.IsNullOrEmpty(searchQuery) || t.TransactionTitle.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
+                (!filterStartDate.HasValue || t.TransactionDate >= filterStartDate) &&
+                (!filterEndDate.HasValue || t.TransactionDate <= filterEndDate))
             .ToList();
+
+        // Sort transactions by type first, then date if needed
+        filteredTransactions = isTypeSortedAscending
+            ? filteredTransactions.OrderBy(t => t.TransactionType).ToList()
+            : filteredTransactions.OrderByDescending(t => t.TransactionType).ToList();
+
+        if (isSortedAscending)
+        {
+            filteredTransactions = filteredTransactions.OrderBy(t => t.TransactionDate).ToList();
+        }
+        else
+        {
+            filteredTransactions = filteredTransactions.OrderByDescending(t => t.TransactionDate).ToList();
+        }
 
         StateHasChanged(); // Refresh the UI
     }
+
 
     private void SetTagSelected(string tagName)
     {
@@ -450,7 +486,7 @@
         ApplyFilters();
     }
 
-  
+
     private void OnSearchQueryChanged(ChangeEventArgs e)
     {
         searchQuery = e.Value?.ToString() ?? string.Empty;
@@ -464,5 +500,54 @@
         ApplyFilters();
     }
 
+    private void FilterStartDate(ChangeEventArgs e) {
+        filterStartDate = DateTime.TryParse(e.Value?.ToString(), out var date) ? date : null;
+        ApplyFilters();
+    }
+
+    private void FilterEndDate(ChangeEventArgs e) {
+        filterEndDate = DateTime.TryParse(e.Value?.ToString(), out var date) ? date : null;
+        ApplyFilters();
+    }
+
+    private void ResetFilters()
+    {
+        // Reset search query
+        searchQuery = string.Empty;
+
+        // Reset selected tag
+        selectedTag = string.Empty;
+
+        // Reset date range
+        filterStartDate = null;
+        filterEndDate = null;
+
+        // Reset filtered transactions to the full list
+        filteredTransactions = new List<UserTransaction>(userTransactions);
+
+        StateHasChanged(); // Refresh the UI
+    }
+
+    private void SortByDate()
+    {
+        isSortedAscending = !isSortedAscending;
+
+        filteredTransactions = isSortedAscending
+            ? filteredTransactions.OrderBy(t => t.TransactionDate).ToList()
+            : filteredTransactions.OrderByDescending(t => t.TransactionDate).ToList();
+
+        StateHasChanged(); // Refresh the UI
+    }
+
+    private void SortByType()
+    {
+        isTypeSortedAscending = !isTypeSortedAscending;
+
+        filteredTransactions = isTypeSortedAscending
+            ? filteredTransactions.OrderBy(t => t.TransactionType).ToList()
+            : filteredTransactions.OrderByDescending(t => t.TransactionType).ToList();
+
+        StateHasChanged(); // Refresh the UI
+    }
 
 }
