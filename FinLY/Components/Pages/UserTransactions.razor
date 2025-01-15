@@ -141,7 +141,7 @@
                         <form @onsubmit="HandleSubmit">
                             <div class="mb-3">
                                 <label for="Total Amount" class="form-label">Total Amount</label>
-                                <h1>@userBalance?.AvailableBalance</h1>
+                                <h1>@userBalance?.AvailableBalancewithDebt</h1>
                             </div>
 
                             <div class="mb-3">
@@ -283,7 +283,7 @@
     {
         try
         {
-            if (newTransaction.TransactionType == "OutFlow" && newTransaction.Amounts > userBalance.AvailableBalance)
+            if (newTransaction.TransactionType == "OutFlow" && newTransaction.Amounts > userBalance.AvailableBalancewithDebt)
             {
                 errorMessage = "Amount exceeds the available balance!";
                 return;

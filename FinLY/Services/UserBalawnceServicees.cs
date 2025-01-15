@@ -2,23 +2,22 @@
 using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FinLY.Services;
-
 
 namespace FinLY.Services
 {
     public class UserBalawnceServicees : IUserBalanceServicees
     {
         private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseUserBalance.json");
-        private readonly IDebtsServices debtsServices; // Add this field
+        private readonly IDebtsServices debtsServices;
 
         public UserBalawnceServicees(IDebtsServices debtsServices)
         {
-            this.debtsServices = debtsServices; // Assign the injected service to the field
+            this.debtsServices = debtsServices;
         }
 
         public async Task<UserBalance> GetUserBalanceAsync(Guid userId)
@@ -48,25 +47,60 @@ namespace FinLY.Services
                 userBalance.TotalCashOutFlow += amount;
             }
 
-            // If the transaction type is related to inflow or outflow, update the debt amount
-            userBalance.TotalDebtAmount = await CalculateTotalDebtAmount(userId);
+            // **Ensure the debt amount is updated whenever the balance is updated**
+            await UpdateDebtRemainingAmountAsync(userId, userBalance);
 
-            // Recalculate Available Balance with Debts: 
-            // (Total Cash Inflow + Total Debt Amount - Total Cash Outflow)
-            userBalance.AvailableBalancewithDebt = userBalance.TotalCashInFlow + userBalance.TotalDebtAmount - userBalance.TotalCashOutFlow;
+            // Recalculate Available Balance with Debts:
+            userBalance.AvailableBalancewithDebt = userBalance.TotalCashInFlow + userBalance.DebtRemainingAmount - userBalance.TotalCashOutFlow;
+
             // Recalculate Available Balance (Cash Inflow - Cash Outflow)
             userBalance.AvailableBalance = userBalance.TotalCashInFlow - userBalance.TotalCashOutFlow;
+
             // Save updated balances back to file
             await SaveAllBalancesAsync(balances);
         }
 
-
-        // Helper method to calculate total debt for a user using the debts service
-        private async Task<decimal> GetTotalDebtAmount(Guid userId)
+        public async Task UpdateDebtRemainingAmountAsync(Guid userId, UserBalance userBalance)
         {
-            // Use the injected debtsServices instance to fetch debts
+            // Calculate the total remaining amount from debts
+            var totalDebtRemaining = await CalculateDebtRemainingAmount(userId);
+
+            // Update the DebtRemainingAmount field
+            userBalance.DebtRemainingAmount = totalDebtRemaining;
+
+            // **Update the TotalDebtAmount here as well**
+            userBalance.TotalDebtAmount = await CalculateTotalDebtAmount(userId);
+
+            // Save the updated user balance back to the file
+            var balances = await LoadAllBalancesAsync();
+            var existingBalance = balances.FirstOrDefault(b => b.UserId == userId);
+
+            if (existingBalance == null)
+            {
+                balances.Add(userBalance);
+            }
+
+            await SaveAllBalancesAsync(balances);
+        }
+
+        private async Task<decimal> CalculateDebtRemainingAmount(Guid userId)
+        {
+            // Fetch debts for the user
             var debts = await debtsServices.GetDebtsByUserIdAsync(userId);
-            // Sum up the total unpaid debts
+            if (debts == null || !debts.Any())
+                return 0;
+
+            // Sum up the remaining amounts of all the debts
+            return debts.Sum(debt => debt.RemainingAmount);
+        }
+
+        private async Task<decimal> CalculateTotalDebtAmount(Guid userId)
+        {
+            var debts = await debtsServices.GetDebtsByUserIdAsync(userId);
+            if (debts == null || !debts.Any())
+                return 0;
+
+            // Sum up the total debt amount (considering unpaid debts)
             return debts.Where(d => d.DebtStatus != "Paid").Sum(d => d.TotalDebtAmount);
         }
 
@@ -86,29 +120,5 @@ namespace FinLY.Services
             var json = JsonSerializer.Serialize(balances, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(FinLyFilePath, json);
         }
-
-        private async Task<decimal> CalculateTotalDebtAmount(Guid userId)
-        {
-            // Create an instance of DebtsServices
-            var debtsServices = new DebtsServices();
-
-            // Fetch all debts for the user
-            var userDebts = await debtsServices.GetDebtsByUserIdAsync(userId);
-
-            // Ensure userDebts is not null or empty before using Sum()
-            if (userDebts == null || !userDebts.Any())
-            {
-                return 0;  // Return 0 if no debts are found
-            }
-
-            // Sum up the debt amounts
-            decimal totalDebtAmount = userDebts.Sum(debt => debt.TotalDebtAmount);
-
-            return totalDebtAmount;
-        }
-
-
-
     }
-
 }
