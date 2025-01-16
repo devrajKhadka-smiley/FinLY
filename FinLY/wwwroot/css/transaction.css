@@ -345,42 +345,37 @@ button.reset-btn {
 .add-btn {
     color: #fff !important;
     background-color: #264267 !important;
-    /*    border-color: #1861ac !important;*/
 }
 
-/* Active state button */
 .btn-toggle {
-    color: white; /* White text */
+    color: white; 
     background-color: #264267 !important;
 }
 .btn-adddebt {
-    color: white; /* White text */
+    color: white;
     background-color: #264267 !important;
     padding: 5px 30px;
     border-radius: 8px;
     margin-top: 15px;
     
 }
-/* Inactive state button */
 .btn-untoggle {
     border: 2px solid #264267 !important;
 }
 
 
-/* Center content horizontally and vertically */
 .center-content {
     display: flex;
-    flex-direction: column; /* Stack items vertically */
-    align-items: center; /* Center horizontally */
-    justify-content: center; /* Center vertically */
-    text-align: center; /* Center text inside */
-    height: 100%; /* Optional: Adjust based on your needs */
-    margin-top: 20px; /* Add spacing above */
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    text-align: center;
+    height: 100%; 
+    margin-top: 20px; 
 }
 
-    /* Optional: Style the h1 for better appearance */
     .center-content h1 {
-        font-size: 2.5rem; /* Adjust font size */
+        font-size: 2.5rem;
         font-weight: bold;
-        color: #333; /* Customize text color */
+        color: #333; 
     }

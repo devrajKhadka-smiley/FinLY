@@ -67,7 +67,6 @@
     justify-content: center;
     align-items: center;
 padding-top:15px;
-/*    background-color: #D0D9F5;*/
     font-size: 20px;
     font-weight: bold;
 }
@@ -77,7 +76,6 @@ padding-top:15px;
     display: flex;
     justify-content: left;
     align-items: flex-start;
-/*    background-color: #E8EBF9;*/
     padding-left: 10px;
     padding-top: 5px;
     padding-bottom: 5px;
@@ -92,51 +90,47 @@ padding-top:15px;
     }
 
 .card.av_balance {
-    background-color: #E8EBF9; !important; /* Forces this rule to apply */
+    background-color: #E8EBF9; !important; 
     border: 2px solid #264267;
     color: #264267;
 }
 
 .card.av_debt_balance {
-    background-color: #FFF4E6; /* Soft orange */
-    border: 2px solid #D96C06; /* Strong orange */
+    background-color: #FFF4E6;
+    border: 2px solid #D96C06; 
     color: #D96C06;
 }
 
-/*.card.total_outflow {
-    background-color: #FDECEA;*/ /* Light red */
-    /*border: 2px solid #D93025;*/ /* Strong red */
-    /*color: #D93025;
-}*/
+
 
 .card.total_outflow {
-    background-color: #FFEDED; /* Light pinkish-red */
-    border: 2px solid #FF6F61; /* Bright coral */
+    background-color: #FFEDED; 
+    border: 2px solid #FF6F61; 
     color: #FF6F61;
 }
 
 .card.total_inflow {
-    background-color: #EBF8EE; /* Light green */
-    border: 2px solid #34A853; /* Strong green */
+    background-color: #EBF8EE; 
+    border: 2px solid #34A853; 
     color: #34A853;
 }
 
 .card.total_debt_amount {
-    background-color: #F3F3FF; /* Light purple */
-    border: 2px solid #5F5CD5; /* Strong purple */
+    background-color: #F3F3FF; 
+    border: 2px solid #5F5CD5; 
     color: #5F5CD5;
 }
 
 .card.remaining_debts {
-    background-color: #FFFAF0; /* Warm beige */
-    border: 2px solid #D97706; /* Golden brown */
+    background-color: #FFFAF0; 
+    border: 2px solid #D97706; 
     color: #D97706;
 }
 
 
 .card.total_cleared_debts {
-    background-color: #EAF4FF; /* Light blue */
-    border: 2px solid #4285F4; /* Strong blue */
+    background-color: #EAF4FF; 
+    border: 2px solid #4285F4;
     color: #4285F4;
 }
 
@@ -177,10 +171,10 @@ padding-top:15px;
     }
     
 .debts-table thead {
-    background-color: #f4f4f4; /* Light background for the table header */
+    background-color: #f4f4f4;
     position: sticky;
-    top: 0; /* Keep the header at the top when scrolling */
-    z-index: 1; /* Ensure the header stays above the content */
+    top: 0; 
+    z-index: 1; 
 }
 
 .debts-section {
@@ -189,11 +183,9 @@ padding-top:15px;
     justify-content: center;
 }
 
-/* Basic layout for the container */
 .basic-info {
     display: flex;
     justify-content: space-between;
-    /*    margin: 20px;*/
     font-family: Arial, sans-serif;
     background-color: white;
     border-radius: 8px;
@@ -201,13 +193,11 @@ padding-top:15px;
     padding: 20px;
 }
 
-    /* Left side section */
     .basic-info .left-side {
         flex: 1;
         padding-right: 20px;
     }
 
-    /* Right side section */
     .basic-info .right-side {
         flex: 0.4;
         display: flex;
@@ -216,7 +206,6 @@ padding-top:15px;
         align-items: flex-end;
     }
 
-    /* Individual info items */
     .basic-info .info-item {
         background-color: #f4f4f4;
         padding: 10px;
@@ -231,17 +220,14 @@ padding-top:15px;
             color: #333;
         }
 
-    /* Inflow info */
     .basic-info .inflow_info {
         border-left: 5px solid #4CAF50;
     }
 
-    /* Debt info */
     .basic-info .debt_info {
         border-left: 5px solid #F44336;
     }
 
-    /* Filters Section */
     .basic-info .right-side .own-filter-input {
         margin-bottom: 15px;
         padding: 10px;
@@ -273,23 +259,20 @@ padding-top:15px;
         }
 
  
-/* Container for the header (h3 + button) */
 .debts-header {
     display: flex;
-    justify-content: space-between; /* Space between h3 and button */
-    align-items: center; /* Vertically center the elements */
-    margin-bottom: 20px; /* Space below the header */
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
 }
 
-    /* h3 styling */
     .debts-header h3 {
-        margin: 0; /* Remove any default margin */
+        margin: 0; 
         font-size: 24px;
         font-weight: bold;
         color: #333;
     }
 
-    /* Button styling */
     .debts-header .btn {
         padding: 5px 14px;
         background-color: #4CAF50;
@@ -303,12 +286,10 @@ padding-top:15px;
         align-items: center;
     }
 
-        /* Hover effect for the button */
         .debts-header .btn:hover {
             background-color: #45a049;
         }
 
-    /* Secondary button styling */
     .debts-header .own-btn-secondary {
         background-color: #f44336;
     }

@@ -38,7 +38,6 @@ namespace FinLY.Services
                 balances.Add(userBalance);
             }
 
-            // Handle Cash Inflow or Outflow and update totals
             if (transactionType == "InFlow")
             {
                 userBalance.TotalCashInFlow += amount;
@@ -48,31 +47,23 @@ namespace FinLY.Services
                 userBalance.TotalCashOutFlow += amount;
             }
 
-            // **Ensure the debt amount is updated whenever the balance is updated**
             await UpdateDebtRemainingAmountAsync(userId, userBalance);
 
-            // Recalculate Available Balance with Debts:
             userBalance.AvailableBalancewithDebt = userBalance.TotalCashInFlow + userBalance.DebtRemainingAmount - userBalance.TotalCashOutFlow;
 
-            // Recalculate Available Balance (Cash Inflow - Cash Outflow)
             userBalance.AvailableBalance = userBalance.TotalCashInFlow - userBalance.TotalCashOutFlow;
 
-            // Save updated balances back to file
             await SaveAllBalancesAsync(balances);
         }
 
         public async Task UpdateDebtRemainingAmountAsync(Guid userId, UserBalance userBalance)
         {
-            // Calculate the total remaining amount from debts
             var totalDebtRemaining = await CalculateDebtRemainingAmount(userId);
 
-            // Update the DebtRemainingAmount field
             userBalance.DebtRemainingAmount = totalDebtRemaining;
 
-            // **Update the TotalDebtAmount here as well**
             userBalance.TotalDebtAmount = await CalculateTotalDebtAmount(userId);
 
-            // Save the updated user balance back to the file
             var balances = await LoadAllBalancesAsync();
             var existingBalance = balances.FirstOrDefault(b => b.UserId == userId);
 
@@ -86,12 +77,10 @@ namespace FinLY.Services
 
         private async Task<decimal> CalculateDebtRemainingAmount(Guid userId)
         {
-            // Fetch debts for the user
             var debts = await debtsServices.GetDebtsByUserIdAsync(userId);
             if (debts == null || !debts.Any())
                 return 0;
 
-            // Sum up the remaining amounts of all the debts
             return debts.Sum(debt => debt.RemainingAmount);
         }
 
@@ -101,7 +90,6 @@ namespace FinLY.Services
             if (debts == null || !debts.Any())
                 return 0;
 
-            // Sum up the total debt amount (considering unpaid debts)
             return debts.Where(d => d.DebtStatus != "Paid").Sum(d => d.TotalDebtAmount);
         }
 

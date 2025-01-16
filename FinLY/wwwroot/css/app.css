@@ -190,15 +190,10 @@ h1:focus {
             background-color: #264267;
             color: white;
         }
-    /*.footer {
-        background-color: #264267;*/
-/*        padding: 5px 15px;*/
-        /*color: #4ec2bb;
-    }*/
+
 
     .footer .logout-container {
         text-align: center;
-/*        margin-left: 10px;*/
         display: flex;
         justify-content: center;
         align-items: center;

@@ -62,11 +62,11 @@
                             <span class="bi" style="cursor: pointer;" @onclick="SortByType">
                                 @if (isTypeSortedAscending)
                                 {
-                                    <i class="bi-caret-up-fill"></i> <!-- Up Arrow for Ascending -->
+                                    <i class="bi-caret-up-fill"></i> 
                                 }
                                 else
                                 {
-                                    <i class="bi-caret-down-fill"></i> <!-- Down Arrow for Descending -->
+                                    <i class="bi-caret-down-fill"></i> 
                                 }
                             </span>
                         </th>
@@ -79,11 +79,11 @@
                             <span class="bi" style="cursor: pointer;" @onclick="SortByDate">
                                 @if (isSortedAscending)
                                 {
-                                    <i class="bi-caret-up-fill"></i> <!-- Up Arrow for Ascending -->
+                                    <i class="bi-caret-up-fill"></i> 
                                 }
                                 else
                                 {
-                                    <i class="bi-caret-down-fill"></i> <!-- Down Arrow for Descending -->
+                                    <i class="bi-caret-down-fill"></i> 
                                 }
                             </span>
                         </th>
@@ -284,14 +284,14 @@
     private string modalClass => isModalOpen ? "show d-block" : "fade";
     private UserBalance userBalance = new UserBalance();
     private string offcanvasClass => isOffcanvasOpen ? "show" : "";
-    private bool isOffcanvasOpen = false; // Controls the offcanvas visibility
+    private bool isOffcanvasOpen = false; 
     private string errorMessage;
     private List<UserTransaction> filteredTransactions = new List<UserTransaction>();
-    private string searchQuery = string.Empty; // To store the search query
-    private bool isSortedAscending = false; // Tracks sorting order for dates
+    private string searchQuery = string.Empty; 
+    private bool isSortedAscending = false; 
     private DateTime? filterStartDate;
     private DateTime? filterEndDate;
-    private bool isTypeSortedAscending = false; // Tracks sorting order for type
+    private bool isTypeSortedAscending = false; 
     private string currencyType;
 
 
@@ -331,12 +331,12 @@
 
     private void OpenAddTransactionModal()
     {
-        isModalOpen = true; // Open the modal
+        isModalOpen = true;
     }
 
     private void CloseAddTransactionModal()
     {
-        isModalOpen = false; // Close the modal
+        isModalOpen = false; 
     }
 
     private async Task HandleSubmit()
@@ -357,22 +357,18 @@
 
             errorMessage = string.Empty;
 
-            // Add the transaction
             await UserTransactionService.AddTransactionAsync(newTransaction);
 
 
-            // Reload transactions after submission
             userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(newTransaction.UserId);
 
             await UserBalawnceServicees.UpdateUserBalanceAsync(newTransaction.UserId, newTransaction.Amounts, newTransaction.TransactionType);
 
-            // Reset the form after successful submission
             newTransaction = new UserTransaction
                 {
                     UserId = AuthService.GetAuthenticatedUser()?.UserId ?? Guid.Empty
                 };
 
-            // Close the modal
             isModalOpen = false;
         }
         catch (Exception ex)
@@ -397,7 +393,6 @@
 
     private void EditTransaction(UserTransaction transaction)
     {
-        // Set the transaction data for editing
         transactionToEdit = new UserTransaction
             {
                 TransactionTitle = transaction.TransactionTitle,
@@ -409,7 +404,6 @@
                 TransactionType = transaction.TransactionType
             };
 
-        // Open the off-canvas (not the modal)
         isOffcanvasOpen = true;
     }
 
@@ -424,14 +418,11 @@
     {
         try
         {
-            // Ensure the transaction is updated in the backend
-            await UserTransactionService.UpdateTransactionAsync(transactionToEdit); // Update the transaction
+            await UserTransactionService.UpdateTransactionAsync(transactionToEdit); 
 
-            // Reload the transactions after updating
             userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(transactionToEdit.UserId);
 
-            // Close the offcanvas after saving
-            CloseEditTransactionOffcanvas(); // Ensure this method closes the offcanvas
+            CloseEditTransactionOffcanvas(); 
             StateHasChanged();
 
 
@@ -444,7 +435,6 @@
 
     private void ApplyFilters()
     {
-        // Filter transactions based on selected filters
         filteredTransactions = userTransactions
             .Where(t =>
                 (string.IsNullOrEmpty(selectedTag) || t.Tag == selectedTag) &&
@@ -453,7 +443,6 @@
                 (!filterEndDate.HasValue || t.TransactionDate <= filterEndDate))
             .ToList();
 
-        // Sort transactions by type first, then date if needed
         filteredTransactions = isTypeSortedAscending
             ? filteredTransactions.OrderBy(t => t.TransactionType).ToList()
             : filteredTransactions.OrderByDescending(t => t.TransactionType).ToList();
@@ -467,7 +456,7 @@
             filteredTransactions = filteredTransactions.OrderByDescending(t => t.TransactionDate).ToList();
         }
 
-        StateHasChanged(); // Refresh the UI
+        StateHasChanged(); 
     }
 
 
@@ -476,19 +465,16 @@
         selectedTag = selectedTag == tagName ? string.Empty : tagName;
         newTransaction.Tag = selectedTag;
 
-        // Filter transactions based on the selected tag
         if (string.IsNullOrEmpty(selectedTag))
         {
-            // If no tag is selected, show all transactions
             filteredTransactions = new List<UserTransaction>(userTransactions);
         }
         else
         {
-            // Filter transactions by the selected tag
             filteredTransactions = userTransactions.Where(t => t.Tag == selectedTag).ToList();
         }
 
-        StateHasChanged(); // Refresh the UI
+        StateHasChanged(); 
         ApplyFilters();
     }
 
@@ -518,20 +504,16 @@
 
     private void ResetFilters()
     {
-        // Reset search query
         searchQuery = string.Empty;
 
-        // Reset selected tag
         selectedTag = string.Empty;
 
-        // Reset date range
         filterStartDate = null;
         filterEndDate = null;
 
-        // Reset filtered transactions to the full list
         filteredTransactions = new List<UserTransaction>(userTransactions);
 
-        StateHasChanged(); // Refresh the UI
+        StateHasChanged();
     }
 
     private void SortByDate()
@@ -542,7 +524,7 @@
             ? filteredTransactions.OrderBy(t => t.TransactionDate).ToList()
             : filteredTransactions.OrderByDescending(t => t.TransactionDate).ToList();
 
-        StateHasChanged(); // Refresh the UI
+        StateHasChanged(); 
     }
 
     private void SortByType()
@@ -553,7 +535,7 @@
             ? filteredTransactions.OrderBy(t => t.TransactionType).ToList()
             : filteredTransactions.OrderByDescending(t => t.TransactionType).ToList();
 
-        StateHasChanged(); // Refresh the UI
+        StateHasChanged(); 
     }
 
     private async Task ExportAsCsv()

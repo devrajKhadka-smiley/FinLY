@@ -174,15 +174,15 @@
     private string todayDate;
     private UserDebt newUserDebt = new UserDebt();
     private List<UserDebt> allUserDebts = new List<UserDebt>();
-    private UserDebt debtToEdit = new UserDebt(); // Initialize the object to avoid null references.
+    private UserDebt debtToEdit = new UserDebt(); 
     private bool isAddDebtModalVisible = false;
     private bool isEditDebtVisible = false;
     private string ErrorMessage { get; set; } = string.Empty;
-    private bool isSortAscending = true; // Toggle for sorting order
-    private bool isSortStatusAscending = true; // Toggle for sorting status order
-    private bool isSortDateAscending = true; // This will track the sort order for due date
-    private string searchQuery = string.Empty; // Added for search functionality
-    private List<UserDebt> filteredDebts = new List<UserDebt>(); // Initialize to avoid null reference
+    private bool isSortAscending = true; 
+    private bool isSortStatusAscending = true; 
+    private bool isSortDateAscending = true; 
+    private string searchQuery = string.Empty; 
+    private List<UserDebt> filteredDebts = new List<UserDebt>(); 
     private string currencyType;
 
 
@@ -243,7 +243,7 @@
         if (user != null)
         {
             allUserDebts = await debtsServices.GetDebtsByUserIdAsync(user.UserId);
-            ApplyFilters(); // Apply filters after loading debts
+            ApplyFilters(); 
         }
     }
 
@@ -251,54 +251,41 @@
     {
         try
         {
-            // Clear previous error message
             ErrorMessage = string.Empty;
 
-            // Get the user's available balance with debts
             var userBalance = await userBalanceService.GetUserBalanceAsync(debt.UserId);
 
-            // Check if AvailableBalancewithDebt is being correctly calculated
             Console.WriteLine($"Available balance with debts: {userBalance.AvailableBalancewithDebt}");
 
-            // Ensure debt.TotalDebtAmount is correctly set (check for any negative or zero amounts)
             if (debt.TotalDebtAmount <= 0)
             {
                 ErrorMessage = "Error: Debt amount must be greater than zero.";
                 return;
             }
 
-            // Check if the debt amount is less than or equal to the available balance
             if (debt.TotalDebtAmount <= userBalance.AvailableBalance)
             {
-                // Proceed with paying the debt
                 debt.RemainingAmount = 0;
                 debt.PaidAmount = debt.TotalDebtAmount;
                 debt.DebtStatus = "Paid";
 
-                // Update debt information in the debts service
                 await debtsServices.UpdateDebtAsync(debt);
 
-                // Update the user balance
                 await userBalanceService.UpdateTotalClearedDebtAmountAsync(debt.UserId, userBalance.DebtClearedAmount);
-                // Calculate the total cleared debt amount (sum of PaidAmounts where DebtStatus is "Paid")
                 var allDebts = await debtsServices.GetDebtsByUserIdAsync(debt.UserId);
                 decimal totalClearedDebtAmount = allDebts.Where(d => d.DebtStatus == "Paid").Sum(d => d.PaidAmount);
 
-                // Update the user balance with the total cleared debt amount
                 await userBalanceService.UpdateTotalClearedDebtAmountAsync(debt.UserId, totalClearedDebtAmount);
 
-                // Reload debts after payment
                 await LoadDebts();
             }
             else
             {
-                // Set the error message if debt cannot be paid
                 ErrorMessage = "Error: Insufficient funds to pay the debt.";
             }
         }
         catch (Exception ex)
         {
-            // Set the error message for unexpected errors
             ErrorMessage = $"Error paying debt: {ex.Message}";
         }
     }
@@ -307,25 +294,24 @@
 
     private void ShowEditDebtOffcanvas(UserDebt debt)
     {
-        // Initialize debtToEdit with the selected debt's data to avoid null reference.
         debtToEdit = new UserDebt
             {
                 DebtTitle = debt.DebtTitle,
                 TotalDebtAmount = debt.TotalDebtAmount,
                 PaidAmount = debt.PaidAmount,
-                RemainingAmount = debt.RemainingAmount, // Ensure to include all fields you want to edit.
+                RemainingAmount = debt.RemainingAmount, 
                 DueDate = debt.DueDate,
                 SourceFrom = debt.SourceFrom,
                 Note = debt.Note,
                 DebtStatus = debt.DebtStatus
             };
 
-        isEditDebtVisible = true; // Show the offcanvas
+        isEditDebtVisible = true; 
     }
 
     private void HideEditDebtOffcanvas()
     {
-        isEditDebtVisible = false; // Hide the offcanvas
+        isEditDebtVisible = false;
     }
 
     private async Task HandleEditSubmit()
@@ -334,17 +320,13 @@
         {
             if (debtToEdit != null)
             {
-                // Update the debt
                 await debtsServices.UpdateDebtAsync(debtToEdit);
 
-                // Recalculate and update the user balance
                 var user = AuthService.GetAuthenticatedUser();
                 if (user != null)
                 {
-                    // Update the user's balance by including the debt change
                     await userBalanceService.UpdateUserBalanceAsync(user.UserId, debtToEdit.TotalDebtAmount, "InFlow");
 
-                    // Optionally, if the total debt is reduced (or cleared), update with "OutFlow"
                     if (debtToEdit.DebtStatus == "Paid")
                     {
                         await userBalanceService.UpdateUserBalanceAsync(user.UserId, debtToEdit.PaidAmount, "OutFlow");
@@ -353,7 +335,7 @@
 
                 debtToEdit = null;
                 await LoadDebts();
-                HideEditDebtOffcanvas(); // Hide the offcanvas after saving
+                HideEditDebtOffcanvas(); 
             }
             else
             {
@@ -370,7 +352,7 @@
     private void CancelEdit()
     {
         debtToEdit = null;
-        HideEditDebtOffcanvas(); // Hide offcanvas without saving
+        HideEditDebtOffcanvas(); 
     }
 
     private void ShowAddDebtModal()
@@ -386,52 +368,46 @@
 
     private void ApplyFilters()
     {
-        // Apply the search filter based on debt title
         filteredDebts = allUserDebts
             .Where(debt => string.IsNullOrEmpty(searchQuery) || debt.DebtTitle.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        // Apply sorting by due date
         filteredDebts = isSortDateAscending
-            ? filteredDebts.OrderBy(debt => debt.DueDate).ToList() // Sort by date ascending
-            : filteredDebts.OrderByDescending(debt => debt.DueDate).ToList(); // Sort by date descending
+            ? filteredDebts.OrderBy(debt => debt.DueDate).ToList() 
+            : filteredDebts.OrderByDescending(debt => debt.DueDate).ToList(); 
 
-        // Apply sorting by debt status
         filteredDebts = isSortStatusAscending
             ? filteredDebts.OrderBy(debt => debt.DebtStatus).ToList()
             : filteredDebts.OrderByDescending(debt => debt.DebtStatus).ToList();
 
-        StateHasChanged(); // Refresh the UI with updated filtered list
+        StateHasChanged(); 
     }
 
 
 
     private void SortDebtsByDate()
     {
-        // Toggle the sorting order for date
         isSortDateAscending = !isSortDateAscending;
-        ApplyFilters(); // Apply filters after sorting by date
+        ApplyFilters();
     }
 
     private void SortDebtsByStatus()
     {
-        // Toggle the sorting order for status
         isSortStatusAscending = !isSortStatusAscending;
-        ApplyFilters(); // Apply filters after sorting by status
+        ApplyFilters(); 
     }
 
-    // Add event handler to update the search query and apply filters
     private void OnSearchChanged(ChangeEventArgs e)
     {
-        searchQuery = e.Value.ToString(); // Update search query with the new value
-        ApplyFilters(); // Reapply filters with the updated search query
+        searchQuery = e.Value.ToString(); 
+        ApplyFilters(); 
     }
 
 
     private void ClearSearch()
     {
-        searchQuery = string.Empty;  // Clear search query
-        ApplyFilters(); // Reapply filters to show all debts
+        searchQuery = string.Empty; 
+        ApplyFilters(); 
     }
 
     private async Task DebtsExportAsCsv()

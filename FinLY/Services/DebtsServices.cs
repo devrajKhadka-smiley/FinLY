@@ -51,7 +51,6 @@ namespace FinLY.Services
             }
             catch (Exception ex)
             {
-                // Instead of logging, handle the error
                 Console.WriteLine($"Error getting debt by ID {debtId}: {ex.Message}");
                 return null;
             }
@@ -63,7 +62,6 @@ namespace FinLY.Services
             {
                 if (debt == null)
                 {
-                    // You can handle the null debt scenario in a different way (e.g., throwing an exception or returning early)
                     Console.WriteLine("Attempted to update a null debt");
                     return;
                 }
@@ -85,13 +83,11 @@ namespace FinLY.Services
                 }
                 else
                 {
-                    // Handle the case where the debt isn't found
                     Console.WriteLine($"Debt with ID {debt.Id} not found for update");
                 }
             }
             catch (Exception ex)
             {
-                // Handle errors instead of logging
                 Console.WriteLine($"Error updating debt with ID {debt.Id}: {ex.Message}");
             }
         }
@@ -110,7 +106,6 @@ namespace FinLY.Services
             }
             catch (Exception ex)
             {
-                // Handle errors instead of logging
                 Console.WriteLine($"Error loading debts from file: {ex.Message}");
                 return new List<UserDebt>();
             }
@@ -125,26 +120,21 @@ namespace FinLY.Services
             }
             catch (Exception ex)
             {
-                // Handle errors instead of logging
                 Console.WriteLine($"Error saving debts to file: {ex.Message}");
             }
         }
 
         private async Task<decimal> CalculateTotalDebtAmount(Guid userId)
         {
-            // Create an instance of DebtsServices (or inject it if possible)
-            var debtsServices = new DebtsServices(); // This might be injected instead of being instantiated here
+            var debtsServices = new DebtsServices(); 
 
-            // Call the method to get the list of debts for the given user
             var userDebts = await debtsServices.GetDebtsByUserIdAsync(userId);
 
-            // Ensure there are debts before summing
             if (userDebts == null || !userDebts.Any())
             {
-                return 0;  // Return 0 if no debts are found
+                return 0; 
             }
 
-            // Sum up the TotalDebtAmount of all debts
             decimal totalDebtAmount = userDebts.Sum(debt => debt.TotalDebtAmount);
 
             return totalDebtAmount;

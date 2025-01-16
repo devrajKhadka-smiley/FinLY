@@ -26,9 +26,9 @@
         <div class="tags-section">
             <h3>Default Tags</h3>
             <div class="tags-container">
-                @if (tags.Any()) // Check if there are any tags
+                @if (tags.Any()) 
                 {
-                    @foreach (var tag in tags) // Iterate over all tags
+                    @foreach (var tag in tags) 
                     {
                         @if (!string.IsNullOrEmpty(tag.TagName))
                         {
@@ -56,9 +56,8 @@
         <div class="custom-section">
             <h3>Custom Tags</h3>
             <div class="tags-container">
-                @if (tags.Any(t => !t.IsDefault)) // Check if there are any custom tags
-                {
-                    @foreach (var tag in tags.Where(t => !t.IsDefault)) // Iterate over only custom tags
+                @if (tags.Any(t => !t.IsDefault)) 
+                    @foreach (var tag in tags.Where(t => !t.IsDefault)) 
                     {
                         @if (!string.IsNullOrEmpty(tag.TagName))
                         {
