@@ -277,7 +277,11 @@
                 decimal totalClearedDebtAmount = allDebts.Where(d => d.DebtStatus == "Paid").Sum(d => d.PaidAmount);
 
                 await userBalanceService.UpdateTotalClearedDebtAmountAsync(debt.UserId, totalClearedDebtAmount);
-                // await userBalanceService.UpdateUserBalanceAsync(debt.UserId, updatedBalance);
+                decimal updatedBalance = userBalance.AvailableBalance - debt.PaidAmount;
+
+                string transactionType = "Debt Payment"; // Example transaction type
+                await userBalanceService.UpdateUserBalanceAsync(debt.UserId, updatedBalance, transactionType);
+
 
                 await LoadDebts();
             }
