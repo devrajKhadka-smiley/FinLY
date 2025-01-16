@@ -136,8 +136,8 @@
                         {
                             <tr>
                                 <td>@debt.DebtTitle</td>
-                                <td>@debt.TotalDebtAmount.ToString("C")</td>
-                                <td>@debt.RemainingAmount.ToString("C")</td>
+                                <td>@currencyType @debt.TotalDebtAmount.ToString()</td>
+                                <td>@currencyType @debt.RemainingAmount.ToString()</td>
                                 <td>@debt.DueDate.ToString("MM/dd/yyyy")</td>
                                 <td>@debt.DebtStatus</td>
                             </tr>
@@ -153,27 +153,27 @@
 
     </div>
 
-    <!-- New section for user transactions -->
     <div class="transactions-section">
         <div class="transactions-header">
-            <h3>Your Transactions</h3>
+            <h3>Highest / Lowest Transaction</h3>
             <div class="sorting-button-container">
-                <button class="btn own-btn-secondary" @onclick="ToggleSortOrder">
+                <button class="btn own-sort-btn" @onclick="ToggleSortOrder">
                     @if (isAscending)
                     {
-                        <span>Sort Ascending</span>
+                        <span>Sort Highest</span>
                     }
                     else
                     {
-                        <span>Sort Descending</span>
+                        <span>Sort Lowest</span>
                     }
                 </button>
             </div>
-            <div>
-                <button class="btn own-btn-secondary" @onclick='async () => ToggleTransactionView("inflow")'>View Inflows</button>
-                <button class="btn own-btn-secondary" @onclick='async () => ToggleTransactionView("outflow")'>View Outflows</button>
-                <button class="btn own-btn-secondary" @onclick='async () => ToggleTransactionView("debts")'>View Debts</button>
+            <div class="transaction-view-buttons">
+                <button class="btn own-tran_btn" @onclick='async () => ToggleTransactionView("inflow")'>View Inflows</button>
+                <button class="btn own-tran_btn" @onclick='async () => ToggleTransactionView("outflow")'>View Outflows</button>
+                <button class="btn own-tran_btn" @onclick='async () => ToggleTransactionView("debts")'>View Debts</button>
             </div>
+
         </div>
 
         @if (transactions != null && transactions.Any())
@@ -193,7 +193,7 @@
                         <tr>
                             <td>@transaction.TransactionDate?.ToString("MM/dd/yyyy")</td>
                             <td>@transaction.TransactionType</td>
-                            <td>@currencyType @transaction.Amounts.ToString("C")</td>
+                            <td>@currencyType @transaction.Amounts.ToString()</td>
                             <td>@transaction.Note</td>
                         </tr>
                     }

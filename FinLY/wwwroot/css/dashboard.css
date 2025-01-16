@@ -51,13 +51,11 @@
 }
 
 .card {
-   
     border-radius: 8px;
     width: 140px;
     height: 150px;
     display: flex;
     flex-direction: column;
-    
     overflow: hidden;
 }
 
@@ -66,7 +64,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-padding-top:15px;
+    padding-top: 15px;
     font-size: 20px;
     font-weight: bold;
 }
@@ -86,50 +84,50 @@ padding-top:15px;
         color: black;
         opacity: 80%;
         margin: 0;
-
     }
 
 .card.av_balance {
-    background-color: #E8EBF9; !important; 
+    background-color: #E8EBF9;
+    !important;
     border: 2px solid #264267;
     color: #264267;
 }
 
 .card.av_debt_balance {
     background-color: #FFF4E6;
-    border: 2px solid #D96C06; 
+    border: 2px solid #D96C06;
     color: #D96C06;
 }
 
 
 
 .card.total_outflow {
-    background-color: #FFEDED; 
-    border: 2px solid #FF6F61; 
+    background-color: #FFEDED;
+    border: 2px solid #FF6F61;
     color: #FF6F61;
 }
 
 .card.total_inflow {
-    background-color: #EBF8EE; 
-    border: 2px solid #34A853; 
+    background-color: #EBF8EE;
+    border: 2px solid #34A853;
     color: #34A853;
 }
 
 .card.total_debt_amount {
-    background-color: #F3F3FF; 
-    border: 2px solid #5F5CD5; 
+    background-color: #F3F3FF;
+    border: 2px solid #5F5CD5;
     color: #5F5CD5;
 }
 
 .card.remaining_debts {
-    background-color: #FFFAF0; 
-    border: 2px solid #D97706; 
+    background-color: #FFFAF0;
+    border: 2px solid #D97706;
     color: #D97706;
 }
 
 
 .card.total_cleared_debts {
-    background-color: #EAF4FF; 
+    background-color: #EAF4FF;
     border: 2px solid #4285F4;
     color: #4285F4;
 }
@@ -169,13 +167,13 @@ padding-top:15px;
     .debts-table tr:nth-child(even) {
         background-color: #f9f9f9;
     }
-    
-.debts-table thead {
-    background-color: #f4f4f4;
-    position: sticky;
-    top: 0; 
-    z-index: 1; 
-}
+
+    .debts-table thead {
+        background-color: #f4f4f4;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
 
 .debts-section {
     width: 100%;
@@ -258,16 +256,16 @@ padding-top:15px;
             background-color: #45a049;
         }
 
- 
+
 .debts-header {
     display: flex;
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 20px; 
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
     .debts-header h3 {
-        margin: 0; 
+        margin: 0;
         font-size: 24px;
         font-weight: bold;
         color: #333;
@@ -298,8 +296,155 @@ padding-top:15px;
             background-color: #d32f2f;
         }
 
+
+
 .div_table {
     background-color: white;
     border-radius: 8px;
     padding: 20px;
 }
+
+.transactions-section {
+    background-color: white;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 7px;
+    min-height: 350px;
+    margin-bottom: 25px;
+}
+.transactions-table {
+    padding: 20px !important;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+
+}
+
+    .transactions-table th,
+    .transactions-table td {
+        padding: 12px !important;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    .transactions-table tbody tr:nth-child(even) {
+        background-color: #f9f9f9 !important;
+    }
+
+    .transactions-table tbody tr:hover {
+        background-color: #e0f7fa; 
+        cursor: pointer;
+    }
+
+    .transactions-table td {
+        font-size: 14px;
+        color: #555;
+    }
+
+        .transactions-table td:first-child {
+            font-weight: bold;
+        }
+
+.sorting-button-container {
+    margin-bottom: 15px;
+}
+
+    .sorting-button-container .btn {
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+        .sorting-button-container .btn:hover {  
+            background-color: #0056b3;
+        }
+
+    .sorting-button-container .own-sort-btn {
+        background-color: #264267 !important;
+        padding: 8px 16px;
+    }
+
+.transactions-header-left {
+    display: inline-block;
+    margin: 0;
+}
+
+.sorting-button-container {
+    display: inline-block;
+    float: right; 
+}
+
+    .sorting-button-container .btn {
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+        .sorting-button-container .btn:hover {
+            background-color: #0056b3;
+        }
+
+.transactions-header-left, .sorting-button-container {
+    margin-right: 10px;
+}
+
+
+.transaction-view-buttons {
+    display: flex;
+    justify-content: flex-start; 
+    gap: 10px; 
+    margin-top: 10px;
+}
+
+.transaction-view-buttons .btn {
+    color: #264267; 
+    border: 2px solid #264267; 
+    padding: 5px 10px; 
+    font-size: 14px; 
+    cursor: pointer; 
+    border-radius: 4px;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.transaction-view-buttons .btn:hover {
+    background-color: #264267; 
+    color: white;
+    border: 2px solid white; /* Change border on hover */
+}
+
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    overflow-y: hidden;
+}
+
+    .transactions-table th, .transactions-table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    .transactions-table th {
+        background-color: #E8EBF9;
+        color: #264267;
+    }
+
+    .transactions-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .transactions-table thead {
+        background-color: #f4f4f4 !important;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
