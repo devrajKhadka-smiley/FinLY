@@ -5,6 +5,8 @@
 @inject AuthenticationStateService AuthService
 @inject IDebtsServices debtsServices
 @inject IUserBalanceServicees userBalanceService
+@inject IJSRuntime jsruntime
+
 
 @if (AuthService.IsAuthenticated())
 {
@@ -29,6 +31,8 @@
                 <h1 class="debt_title">Debts</h1>
                 <button class="debt_button" @onclick="ShowAddDebtModal">Add Debts</button>
             </div>
+            <hr style="border: none; height: 2px; background-color: black;">
+
             <div class="filters">
                 <div class="filter-buttons">
                 </div>
@@ -37,6 +41,9 @@
 
                     <button class="search-clear-btn" @onclick="ClearSearch">
                         <i class="bi bi-x-circle"></i>
+                    </button>
+                    <button type="button" class="transaction_button own-btn-secondary ms-2" @onclick="DebtsExportAsCsv">
+                        <i class="bi bi-download"></i>
                     </button>
 
                 </div>
@@ -53,14 +60,12 @@
                                 Due Date
                                 <i class="bi @(isSortDateAscending ? "bi-caret-up-fill" : "bi-caret-down-fill")"></i>
                             </th>
-
                             <th>Source From</th>
                             <th>Note</th>
                             <th @onclick="SortDebtsByStatus" style="cursor: pointer;">
                                 Status
                                 <i class="bi @(isSortStatusAscending ? "bi-caret-up-fill" : "bi-caret-down-fill")" style="float: right;"></i>
                             </th>
-
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -70,26 +75,29 @@
                         {
                             <tr>
                                 <td>@debt.DebtTitle</td>
-                                <td>@debt.TotalDebtAmount</td>
-                                <td>@debt.RemainingAmount</td>
+                                <td>@currencyType @debt.TotalDebtAmount</td>
+                                <td>@currencyType @debt.RemainingAmount</td>
                                 <td>@debt.DueDate.ToString("MMMM dd, yyyy")</td>
                                 <td>@debt.SourceFrom</td>
                                 <td>@debt.Note</td>
                                 <td>@debt.DebtStatus</td>
                                 <td>
-                                    <button class="btn btn-info" @onclick="() => ShowEditDebtOffcanvas(debt)">Edit</button>
+                                    @* <button class="edit-btn btn btn-warning" @onclick="() => ShowEditDebtOffcanvas(debt)">Edit</button> *@
 
                                     @if (debt.DebtStatus != "Paid")
                                     {
-                                        <button class="btn btn-primary" @onclick="() => PayDebt(debt)">Pay</button>
+                                        <button class="edit-btn btn-primary" @onclick="() => PayDebt(debt)">
+                                            <i class="bi bi-cash me-2"></i> 
+                                        </button>
                                     }
+
                                 </td>
                             </tr>
                         }
                     </tbody>
-
                 </table>
             </div>
+
         </div>
 
         <!-- Add Debt Modal -->
@@ -120,7 +128,7 @@
                             <label>Note:</label>
                             <textarea @bind="newUserDebt.Note" class="form-control" rows="3"></textarea>
 
-                            <button type="submit" class="btn btn-success">Add Debt</button>
+                            <button type="submit" class="btn-adddebt  btn-success">Add Debt</button>
                         </form>
                     </div>
                 </div>
@@ -175,7 +183,7 @@
     private bool isSortDateAscending = true; // This will track the sort order for due date
     private string searchQuery = string.Empty; // Added for search functionality
     private List<UserDebt> filteredDebts = new List<UserDebt>(); // Initialize to avoid null reference
-
+    private string currencyType;
 
 
     protected override async Task OnInitializedAsync()
@@ -184,6 +192,7 @@
         if (user != null)
         {
             userName = user.UserName;
+            currencyType = user.Currency;
             await LoadDebts();
         }
         else
@@ -423,6 +432,35 @@
     {
         searchQuery = string.Empty;  // Clear search query
         ApplyFilters(); // Reapply filters to show all debts
+    }
+
+    private async Task DebtsExportAsCsv()
+    {
+        var data = "Debts Title,Debts Total Amount, Debts Remaining Amounts, Date, Note, Status\n";
+        var debts = await debtsServices.GetDebtsByUserIdAsync(AuthService.GetAuthenticatedUser().UserId);
+
+        foreach (var deb in debts)
+        {
+            data += $"{deb.DebtTitle}, {deb.TotalDebtAmount}, {deb.RemainingAmount}, {deb.DueDate}, {deb.Note}, {deb.DebtStatus}\n";
+        }
+
+        var encodedData = Uri.EscapeDataString(data);
+        var user = AuthService.GetAuthenticatedUser();
+        var userName = user?.UserName ?? "User";
+
+        var fileName = $"{userName}_DebtsDetails.csv";
+        var dataUri = $"data:text/csv;charset=utf-8,{encodedData}";
+
+        var script = $@"
+        var link  = document.createElement('a');
+        link.href = '{dataUri}';
+        link.download = '{fileName}';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    ";
+
+        await jsruntime.InvokeVoidAsync("eval", script);
     }
 
 

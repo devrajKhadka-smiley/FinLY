@@ -23,7 +23,7 @@
         <div class="top-card-info">
             <div class="card av_balance">
                 <div class="card-top">
-                    <p>@(userBalance?.AvailableBalance.ToString("C") ?? "N/A")</p>
+                    <p>@currencyType @( userBalance?.AvailableBalance.ToString() ?? "N/A")</p>
                 </div>
                 <div class="card-btm">
                     <h4>Net Balance</h4>
@@ -32,7 +32,7 @@
 
             <div class="card av_debt_balance">
                 <div class="card-top">
-                    <p>@(userBalance?.AvailableBalancewithDebt.ToString("C") ?? "N/A")</p>
+                    <p>@currencyType @(userBalance?.AvailableBalancewithDebt.ToString() ?? "N/A")</p>
                 </div>
                 <div class="card-btm">
                     <h4>Total Balance</h4>
@@ -41,7 +41,7 @@
 
             <div class="card total_inflow">
                 <div class="card-top">
-                    <p>@(userBalance?.TotalCashInFlow.ToString("C") ?? "N/A")</p>
+                    <p>@currencyType @(userBalance?.TotalCashInFlow.ToString() ?? "N/A")</p>
                 </div>
                 <div class="card-btm">
                     <h4>Total Cash InFlow</h4>
@@ -50,7 +50,7 @@
 
             <div class="card total_outflow">
                 <div class="card-top">
-                    <p>@(userBalance?.TotalCashOutFlow.ToString("C") ?? "N/A")</p>
+                    <p>@currencyType @(userBalance?.TotalCashOutFlow.ToString() ?? "N/A")</p>
                 </div>
                 <div class="card-btm">
                     <h4>Total Cash OutFlow</h4>
@@ -59,7 +59,7 @@
 
             <div class="card total_debt_amount">
                 <div class="card-top">
-                    <p>@(userBalance?.TotalDebtAmount.ToString("C") ?? "N/A")</p>
+                    <p>@currencyType @(userBalance?.TotalDebtAmount.ToString() ?? "N/A")</p>
                 </div>
                 <div class="card-btm">
                     <h4>Total Debt Amount</h4>
@@ -68,7 +68,7 @@
 
             <div class="card remaining_debts">
                 <div class="card-top">
-                    <p>@(userBalance?.DebtRemainingAmount.ToString("C") ?? "N/A")</p>
+                    <p>@currencyType @(userBalance?.DebtRemainingAmount.ToString() ?? "N/A")</p>
                 </div>
                 <div class="card-btm">
                     <h4>Remaining Debts</h4>
@@ -77,7 +77,7 @@
 
             <div class="card total_cleared_debts">
                 <div class="card-top">
-                    <p>@(userBalance?.DebtClearedAmount.ToString("C") ?? "N/A")</p>
+                    <p>@currencyType @(userBalance?.DebtClearedAmount.ToString() ?? "N/A")</p>
                 </div>
                 <div class="card-btm">
                     <h4>Total Cleared Debts</h4>
@@ -166,7 +166,7 @@ else
     private DateTime? filterEndDate;
     private List<UserDebt> filteredDebts = new List<UserDebt>(); // Store filtered debts
     private List<UserTransaction> transactions = new List<UserTransaction>();
-
+    private string currencyType;
 
     protected override async Task OnInitializedAsync()
     {
@@ -176,6 +176,7 @@ else
             if (user != null)
             {
                 userBalance = await userBalanceService.GetUserBalanceAsync(user.UserId);
+                currencyType = user.Currency;
                 debts = await debtService.GetDebtsByUserIdAsync(user.UserId);
                 filteredDebts = debts.OrderByDescending(debt => debt.TotalDebtAmount).Take(5).ToList(); // Initialize filtered debts with sorted debts initially
                 transactions = await transactionService.GetTransactionsByUserIdAsync(user.UserId); // Fetch transactions

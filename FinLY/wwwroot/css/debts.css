@@ -7,7 +7,6 @@
 }
 .debt_header {
     display: flex;
-    border-bottom: 2px solid black;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
@@ -42,4 +41,38 @@
     .outline-btn:hover {
         background-color: #f0f0f0;
     }
-  
+
+
+.table-container {
+    min-height: 497px;
+    max-height: 497px; /* Set the max height of the table */
+    overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.table-scrollable tr:nth-child(even) {
+    background-color: #f9f9f9 !important; /* Correct the selector */
+}
+    .table th, .table td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .table th {
+        background-color: #E8EBF9 !important;
+        color: #264267 !important;
+    }
+
+
+
+    .table tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+
+.pay-btn{
+    margin-left: 5px;
+}

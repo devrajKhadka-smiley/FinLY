@@ -5,6 +5,9 @@
 @inject IUserTransactionServices UserTransactionService
 @inject ITagsServices TagsServices
 @inject IUserBalanceServicees UserBalawnceServicees
+@inject IJSRuntime jsruntime
+
+   
 
 @if (AuthService.IsAuthenticated())
 {
@@ -30,25 +33,27 @@
             <div class="filter-buttons d-flex align-items-center">
                 <input type="date" class="form-control filter-input" value="@filterStartDate?.ToString("yyyy-MM-dd")" @onchange="FilterStartDate" required />
                 <input type="date" class="form-control filter-input" value="@filterEndDate?.ToString("yyyy-MM-dd")" @onchange="FilterEndDate" required />
-                <button class="btn btn-secondary" @onclick="ResetFilters">Reset Filters</button>
+                <button class="btn reset-btn" @onclick="ResetFilters">Reset Filters</button>
 
             </div>
 
             <div class="search d-flex align-items-center">
                 <input type="text" class="search-input form-control" placeholder="Find Transaction by Title..."
                 @oninput="OnSearchQueryChanged" />
-                <button class="search-clear-btn btn btn-outline-secondary" @onclick="ClearSearch">
+                <button class="      btn btn-outline-secondary" @onclick="ClearSearch">
                     <i class="bi bi-x-circle"></i>
                 </button>
-                <button class="transaction_button own-btn-secondary ms-2">
-                    <i class="bi bi-download"></i> 
+                <button type="button" class="transaction_button own-btn-secondary ms-2" @onclick="ExportAsCsv">
+                    <i class="bi bi-download"></i>
                 </button>
+
+
             </div>
 
         </div>
 
         <div class="transaction_table_container" style="margin-top: 20px;">
-            <table class="table table-bordered">
+            <table class="table table-bordered table-scrollable">
                 <thead>
                     <tr>
                         <th>Title</th>
@@ -57,11 +62,11 @@
                             <span class="bi" style="cursor: pointer;" @onclick="SortByType">
                                 @if (isTypeSortedAscending)
                                 {
-                                    <i class="bi bi-arrow-up"></i> <!-- Up Arrow for Ascending -->
+                                    <i class="bi-caret-up-fill"></i> <!-- Up Arrow for Ascending -->
                                 }
                                 else
                                 {
-                                    <i class="bi bi-arrow-down"></i> <!-- Down Arrow for Descending -->
+                                    <i class="bi-caret-down-fill"></i> <!-- Down Arrow for Descending -->
                                 }
                             </span>
                         </th>
@@ -74,15 +79,14 @@
                             <span class="bi" style="cursor: pointer;" @onclick="SortByDate">
                                 @if (isSortedAscending)
                                 {
-                                    <i class="bi bi-arrow-up"></i> <!-- Up Arrow for Ascending -->
+                                    <i class="bi-caret-up-fill"></i> <!-- Up Arrow for Ascending -->
                                 }
                                 else
                                 {
-                                    <i class="bi bi-arrow-down"></i> <!-- Down Arrow for Descending -->
+                                    <i class="bi-caret-down-fill"></i> <!-- Down Arrow for Descending -->
                                 }
                             </span>
                         </th>
-
 
                         <th>Actions</th>
                     </tr>
@@ -95,12 +99,12 @@
                             <tr>
                                 <td>@transaction.TransactionTitle</td>
                                 <td>@transaction.TransactionType</td>
-                                <td>@transaction.Amounts</td>
+                                <td>@currencyType @transaction.Amounts</td>
                                 <td>@transaction.Tag</td>
                                 <td>@transaction.Note</td>
                                 <td>@transaction.TransactionDate?.ToString("yyyy-MM-dd")</td>
                                 <td>
-                                    <button @onclick="() => EditTransaction(transaction)" class="btn btn-warning" data-bs-toggle="offcanvas" data-bs-target="#editTransactionOffcanvas">
+                                    <button @onclick="() => EditTransaction(transaction)" class="edit-btn btn btn-warning" data-bs-toggle="offcanvas" data-bs-target="#editTransactionOffcanvas">
                                         Edit
                                     </button>
                                 </td>
@@ -114,10 +118,8 @@
                         </tr>
                     }
                 </tbody>
-
-
-
             </table>
+
         </div>
     </div>
     <div class="transaction_tag">
@@ -190,22 +192,23 @@
                 <div class="modal-body custom-modal-body d-flex">
                     <div class="left-column col-6">
                         <form @onsubmit="HandleSubmit">
-                            <div class="mb-3">
+                            <div class="mb-3 center-content">
                                 <label for="Total Amount" class="form-label">Total Amount</label>
                                 <h1>@userBalance?.AvailableBalancewithDebt</h1>
                             </div>
+
 
                             <div class="mb-3">
                                 <label for="transactionType" class="form-label">Transaction Type</label>
                                 <div class="btn-group w-100" role="group">
                                     <button type="button"
-                                    class="btn @(newTransaction.TransactionType == "InFlow" ? "btn-primary" : "btn-outline-primary")"
-                                    @onclick='() => SetTransactionType("InFlow")'>
+                                            class="btn @(newTransaction.TransactionType == "InFlow" ? "btn-toggle" : "btn-untoggle")"
+                                            @onclick='() => SetTransactionType("InFlow")'>
                                         InFlow
                                     </button>
                                     <button type="button"
-                                    class="btn @(newTransaction.TransactionType == "OutFlow" ? "btn-primary" : "btn-outline-primary")"
-                                    @onclick='() => SetTransactionType("OutFlow")'>
+                                            class="btn @(newTransaction.TransactionType == "OutFlow" ? "btn-toggle" : "btn-untoggle")"
+                                            @onclick='() => SetTransactionType("OutFlow")'>
                                         OutFlow
                                     </button>
                                 </div>
@@ -259,7 +262,7 @@
 
                         <div class="modal-footer custom-modal-footer">
                             <button type="button" class="btn btn-secondary" @onclick="CloseAddTransactionModal">Close</button>
-                            <button type="submit" @onclick="HandleSubmit" class="btn btn-primary">Add Transaction</button>
+                            <button type="submit" @onclick="HandleSubmit" class="add-btn btn ">Add Transaction</button>
 
                         </div>
                     </div>
@@ -289,9 +292,7 @@
     private DateTime? filterStartDate;
     private DateTime? filterEndDate;
     private bool isTypeSortedAscending = false; // Tracks sorting order for type
-
-
-
+    private string currencyType;
 
 
     private List<Models.Tags> allTags = new List<Models.Tags>();
@@ -311,6 +312,8 @@
             if (user != null)
             {
                 userName = user.UserName;
+                currencyType = user.Currency;
+
                 allTags = await TagsServices.GetTagsByUserIdAsync(user.UserId);
 
                 userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(user.UserId);
@@ -552,5 +555,35 @@
 
         StateHasChanged(); // Refresh the UI
     }
+
+    private async Task ExportAsCsv()
+    {
+        var data = "Transaction Title, Transaction Type, Amount, Tag, Note, Date\n";
+        var transactions = await UserTransactionService.GetTransactionsByUserIdAsync(AuthService.GetAuthenticatedUser().UserId);
+
+        foreach (var transaction in transactions)
+        {
+            data += $"{transaction.TransactionTitle}, {transaction.TransactionType}, {transaction.Amounts}, {transaction.Tag}, {transaction.Note}, {transaction.TransactionDate}\n";
+        }
+
+        var encodedData = Uri.EscapeDataString(data);
+        var user = AuthService.GetAuthenticatedUser();
+        var userName = user?.UserName ?? "User";
+
+        var fileName = $"{userName}_TransactionDetails.csv";
+        var dataUri = $"data:text/csv;charset=utf-8,{encodedData}";
+
+        var script = $@"
+        var link  = document.createElement('a');
+        link.href = '{dataUri}';
+        link.download = '{fileName}';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    ";
+
+        await jsruntime.InvokeVoidAsync("eval", script);
+    }
+}
 
 }

@@ -169,23 +169,10 @@ h1:focus {
     width: 100%;
 }
 
-    .footer .left {
-        margin-right: 10px;
-/*        border-radius: 5px;*/
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-/*        border-radius: 5px;*/
-        padding-top: 5px;
-        padding-bottom: 5px;
-        padding-right: 20px;
-        border: none;
-        border: 2px solid rgb(180, 180, 180);
-        border-radius: 5px;
-    }
+
 
     .footer .right {
+        width: 100%;
         border: 2px solid #4EC2BB;
         margin-left: 10px;
         box-sizing: border-box;
@@ -199,11 +186,15 @@ h1:focus {
         padding-right: 20px;
     }
 
-    .footer .export-button:hover {
-        background-color: #264267;
+        .footer .right:hover {
+            background-color: #264267;
+            color: white;
+        }
+    /*.footer {
+        background-color: #264267;*/
 /*        padding: 5px 15px;*/
-        color: #4ec2bb;
-    }
+        /*color: #4ec2bb;
+    }*/
 
     .footer .logout-container {
         text-align: center;

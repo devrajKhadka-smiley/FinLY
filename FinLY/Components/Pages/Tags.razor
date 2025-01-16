@@ -19,42 +19,46 @@
         <button class="add_cat_btn" data-bs-toggle="offcanvas" data-bs-target="#addCategoryOffcanvas" aria-controls="addCategoryOffcanvas">
             Add Tags
         </button>
-        <div class="tabs">
 
-            <button onclick="() => OnCategorySelected('All)" class="@(selectedCategory == "All" ? "active" : "")">All</button>
-            <button onclick="() => OnCategorySelected('Income)" class="@(selectedCategory == "Income" ? "active" : "")">Income</button>
-            <button onclick="() => OnCategorySelected('Expense)" class="@(selectedCategory == "Expense" ? "active" : "")">Expense</button>
-        </div>
     </div>
 
     <div class="all-tags">
         <div class="tags-section">
             <h3>Default Tags</h3>
             <div class="tags-container">
-                @foreach (var tag in GetFilteredTags(true))
+                @if (tags.Any()) // Check if there are any tags
                 {
-                    @if (!string.IsNullOrEmpty(tag.TagName))
+                    @foreach (var tag in tags) // Iterate over all tags
                     {
-                        <div class="tag-item">
-                            <div class="tag-name">
-                                @tag.TagName
+                        @if (!string.IsNullOrEmpty(tag.TagName))
+                        {
+                            <div class="tag-item">
+                                <div class="tag-name">
+                                    @tag.TagName
+                                </div>
+                                @if (!string.IsNullOrEmpty(tag.TagType))
+                                {
+                                    <span class="badge bg-secondary ms-2">@tag.TagType</span>
+                                }
                             </div>
-                            @if (!string.IsNullOrEmpty(tag.TagType))
-                            {
-                                <span class="badge bg-secondary ms-2">@tag.TagType</span>
-                            }
-                        </div>
+                        }
                     }
                 }
+                else
+                {
+                    <p>No tags are added.</p>
+                }
             </div>
+
+
         </div>
 
         <div class="custom-section">
             <h3>Custom Tags</h3>
             <div class="tags-container">
-                @if (GetFilteredTags(false).Any())
+                @if (tags.Any(t => !t.IsDefault)) // Check if there are any custom tags
                 {
-                    @foreach (var tag in GetFilteredTags(false))
+                    @foreach (var tag in tags.Where(t => !t.IsDefault)) // Iterate over only custom tags
                     {
                         @if (!string.IsNullOrEmpty(tag.TagName))
                         {
@@ -76,6 +80,7 @@
                 }
             </div>
         </div>
+
     </div>
 </div>
 
@@ -143,23 +148,6 @@
         }
     }
 
-    private IEnumerable<Models.Tags> GetFilteredTags(bool isDefault)
-    {
-        var filteredTags = tags.Where(t => t.IsDefault == isDefault);
-
-        if (selectedCategory != "All")
-        {
-            filteredTags = filteredTags.Where(t => t.TagType == selectedCategory);
-        }
-
-        return filteredTags;
-    }
-
-    private void OnCategorySelected(string category)
-    {
-        selectedCategory = category;
-        StateHasChanged(); // Ensure UI updates after the selection.
-    }
 
     private async Task AddTag()
     {
