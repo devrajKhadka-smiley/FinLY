@@ -5,9 +5,6 @@
 @inject IDebtsServices debtService
 @inject IUserTransactionServices transactionService
 @inject IUserBalanceServicees userBalanceService
-@using Blazorise.Charts
-
-
 
 @if (userBalance != null)
 {
@@ -90,7 +87,7 @@
     <div class="basic-info">
         <div class="left-side">
 
-            
+
             <div class="info-item inflow_info">
                 <p>Transactions Count: @(transactions?.Count(t => t.Amounts > 0).ToString() ?? "0")</p> 
             </div>
@@ -111,6 +108,7 @@
 
     <div class="debts-section">
         <div class="div_pie">
+            <BarChart @ref="barChart" Width="500" Height="300" />
         </div>
 
         <div class="div_table">
@@ -214,6 +212,12 @@ else
 }
 
 @code {
+    private ChartData chartData = default!;
+    private BarChartOptions barChartOptions = default!;
+    private BarChart barChart = default!;
+}
+
+@code {
     private UserBalance userBalance;
     private string userName;
     private string todayDate;
@@ -247,6 +251,8 @@ else
             userName = user?.UserName ?? "Guest";
             todayDate = DateTime.Now.ToString("MMMM dd, yyyy");
 
+            InitializeBarChart(); // Call here
+
 
         }
         catch (Exception ex)
@@ -255,14 +261,7 @@ else
         }
     }
 
-    private void ResetFilters()
-    {
-        filterStartDate = null;
-        filterEndDate = null;
 
-        filteredDebts = new List<UserDebt>(debts); 
-        StateHasChanged(); 
-    }
     private void FilterStartDate(ChangeEventArgs e)
     {
         filterStartDate = DateTime.TryParse(e.Value?.ToString(), out var date) ? date : null;
@@ -359,7 +358,77 @@ else
         FilterTransactions(); // Re-apply filters with the new sort order
     }
 
+    private void InitializeBarChart()
+    {
+        var labels = filteredDebts.Select(debt => debt.DebtTitle).ToList();
+        var datasets = new List<IChartDataset>();
 
+        var dataset = new BarChartDataset
+        {
+            Data = filteredDebts.Select(debt => (double?)debt.TotalDebtAmount).ToList(),
+            BackgroundColor = new List<string> { "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF" },
+            BorderColor = new List<string> { "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF" },
+            BorderWidth = new List<double> { 1 }
+        };
 
+        datasets.Add(dataset);
+
+        chartData = new ChartData
+        {
+            Labels = labels,
+            Datasets = datasets
+        };
+
+        barChartOptions = new BarChartOptions();
+        barChartOptions.Responsive = true;
+        barChartOptions.Interaction = new Interaction { Mode = InteractionMode.Y };
+        barChartOptions.IndexAxis = "y";
+        barChartOptions.Plugins.Legend.Display = false;
+            /*barChartOptions = new BarChartOptions
+        {
+            Responsive = true,
+            Scales = new ChartScales
+            {
+                X = new ChartAxis
+                {
+                    Title = new ChartAxesTitle { Text = "Debt Titles", Display = true }
+                },
+                Y = new ChartAxis
+                {
+                    Title = new ChartAxesTitle { Text = "Total Amount", Display = true }
+                }
+            },
+            Plugins = new ChartOptionsPlugins
+            {
+                Legend = new ChartLegend { Display = false }
+            }
+        };*/
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await barChart.InitializeAsync(chartData, barChartOptions);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    // private void ResetFilters()
+    // {
+        //filteredDebts = new List<UserDebt>(debts);
+        //InitializeBarChart();
+        //StateHasChanged();
+    //}
+
+ private void ResetFilters()
+    {
+        filterStartDate = null;
+        filterEndDate = null;
+
+        filteredDebts = new List<UserDebt>(debts); 
+        InitializeBarChart();
+        StateHasChanged(); 
+    }
 
 }
