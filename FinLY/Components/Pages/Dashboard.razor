@@ -22,7 +22,7 @@
         <div class="top-card-info">
             <div class="card av_balance">
                 <div class="card-top">
-                    <p>@currencyType @( userBalance?.AvailableBalance.ToString() ?? "N/A")</p>
+                    <p>@currencyType @(userBalance?.AvailableBalance.ToString() ?? "N/A")</p>
                 </div>
                 <div class="card-btm">
                     <h4>Net Balance</h4>
@@ -89,18 +89,17 @@
 
 
             <div class="info-item inflow_info">
-                <p>Transactions Count: @(transactions?.Count(t => t.Amounts > 0).ToString() ?? "0")</p> 
+                <p>Transactions Count: @(transactions?.Count(t => t.Amounts > 0).ToString() ?? "0")</p>
             </div>
 
 
             <div class="info-item debt_info">
-                <p>Debts Count: @(debts?.Count.ToString() ?? "0")</p>  
+                <p>Debts Count: @(debts?.Count.ToString() ?? "0")</p>
             </div>
 
 
         </div>
         <div class="right-side">
-
             <input type="date" class="own-filter-input" value="@filterStartDate?.ToString("yyyy-MM-dd")" @onchange="FilterStartDate" required />
             <input type="date" class="own-filter-input" value="@filterEndDate?.ToString("yyyy-MM-dd")" @onchange="FilterEndDate" required />
         </div>
@@ -224,12 +223,12 @@ else
     private List<UserDebt> debts;
     private DateTime? filterStartDate;
     private DateTime? filterEndDate;
-    private List<UserDebt> filteredDebts = new List<UserDebt>(); 
+    private List<UserDebt> filteredDebts = new List<UserDebt>();
     private List<UserTransaction> transactions = new List<UserTransaction>();
     private string currencyType;
     private string currentView = "inflow";
     private List<UserTransaction> filteredTransactions = new List<UserTransaction>();
-    private bool isAscending = false; 
+    private bool isAscending = false;
 
 
     protected override async Task OnInitializedAsync()
@@ -239,10 +238,13 @@ else
             var user = AuthService.GetAuthenticatedUser();
             if (user != null)
             {
+
                 userBalance = await userBalanceService.GetUserBalanceAsync(user.UserId);
                 currencyType = user.Currency;
                 debts = await debtService.GetDebtsByUserIdAsync(user.UserId);
-                filteredDebts = debts.OrderByDescending(debt => debt.TotalDebtAmount).Take(5).ToList(); 
+
+
+                filteredDebts = debts.OrderByDescending(debt => debt.TotalDebtAmount).Take(5).ToList();
                 transactions = await transactionService.GetTransactionsByUserIdAsync(user.UserId);
                 FilterTransactions();
 
@@ -250,8 +252,12 @@ else
 
             userName = user?.UserName ?? "Guest";
             todayDate = DateTime.Now.ToString("MMMM dd, yyyy");
+            filterStartDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            filterEndDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month));
+                ApplyFilters();
 
-            InitializeBarChart(); // Call here
+
+            InitializeBarChart();
 
 
         }
@@ -277,16 +283,17 @@ else
     private void ApplyFilters()
     {
         if (debts != null)
-            if (debts != null)
-            {
-                filteredDebts = debts.Where(debt =>
-                    (!filterStartDate.HasValue || debt.DueDate >= filterStartDate.Value) &&
-                    (!filterEndDate.HasValue || debt.DueDate <= filterEndDate.Value)
-                ).ToList();
-            }
+        {
+            filteredDebts = debts.Where(debt =>
+                (!filterStartDate.HasValue || debt.DueDate.Date >= filterStartDate.Value.Date) &&
+                (!filterEndDate.HasValue || debt.DueDate.Date <= filterEndDate.Value.Date)
+            ).ToList();
+        }
 
+        InitializeBarChart();
         StateHasChanged();
     }
+
 
     private void FilterTransactions()
     {
@@ -294,14 +301,13 @@ else
         {
             var sortedTransactions = transactions.AsQueryable();
 
-            // Sort based on the selected order (ascending or descending)
             if (isAscending)
             {
-                sortedTransactions = sortedTransactions.OrderBy(testc => testc.Amounts); // Ascending (lowest first)
+                sortedTransactions = sortedTransactions.OrderBy(testc => testc.Amounts);
             }
             else
             {
-                sortedTransactions = sortedTransactions.OrderByDescending(testc => testc.Amounts); // Descending (highest first)
+                sortedTransactions = sortedTransactions.OrderByDescending(testc => testc.Amounts);
             }
 
             switch (currentView)
@@ -309,13 +315,13 @@ else
                 case "inflow":
                     filteredTransactions = sortedTransactions
                         .Where(testc => testc.TransactionType == "InFlow")
-                        .Take(5) // Take top 5 highest or lowest based on sort order
+                        .Take(5)
                         .ToList();
                     break;
                 case "outflow":
                     filteredTransactions = sortedTransactions
                         .Where(testc => testc.TransactionType == "OutFlow")
-                        .Take(5) // Take top 5 highest or lowest based on sort order
+                        .Take(5)
                         .ToList();
                     break;
                 case "debts":
@@ -328,7 +334,7 @@ else
                                 Amounts = debt.TotalDebtAmount,
                                 Note = debt.DebtTitle
                             })
-                        .OrderBy(testc => isAscending ? testc.Amounts : -testc.Amounts) // Correct sorting
+                        .OrderBy(testc => isAscending ? testc.Amounts : -testc.Amounts)
                         .Take(5)
                         .ToList();
                     break;
@@ -347,15 +353,15 @@ else
     private async Task ToggleTransactionView(string view)
     {
         currentView = view;
-        FilterTransactions(); // Ensure it updates filteredTransactions based on the selected view
-        StateHasChanged(); // Force the UI to re-render after the data is updated
+        FilterTransactions();
+        StateHasChanged();
         await Task.CompletedTask;
     }
 
     private void ToggleSortOrder()
     {
-        isAscending = !isAscending; // Toggle the sort order
-        FilterTransactions(); // Re-apply filters with the new sort order
+        isAscending = !isAscending;
+        FilterTransactions();
     }
 
     private void InitializeBarChart()
@@ -364,45 +370,45 @@ else
         var datasets = new List<IChartDataset>();
 
         var dataset = new BarChartDataset
-        {
-            Data = filteredDebts.Select(debt => (double?)debt.TotalDebtAmount).ToList(),
-            BackgroundColor = new List<string> { "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF" },
-            BorderColor = new List<string> { "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF" },
-            BorderWidth = new List<double> { 1 }
-        };
+            {
+                Data = filteredDebts.Select(debt => (double?)debt.TotalDebtAmount).ToList(),
+                BackgroundColor = new List<string> { "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF" },
+                BorderColor = new List<string> { "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF" },
+                BorderWidth = new List<double> { 1 }
+            };
 
         datasets.Add(dataset);
 
         chartData = new ChartData
-        {
-            Labels = labels,
-            Datasets = datasets
-        };
+            {
+                Labels = labels,
+                Datasets = datasets
+            };
 
         barChartOptions = new BarChartOptions();
         barChartOptions.Responsive = true;
         barChartOptions.Interaction = new Interaction { Mode = InteractionMode.Y };
         barChartOptions.IndexAxis = "y";
         barChartOptions.Plugins.Legend.Display = false;
-            /*barChartOptions = new BarChartOptions
+        /*barChartOptions = new BarChartOptions
+    {
+        Responsive = true,
+        Scales = new ChartScales
         {
-            Responsive = true,
-            Scales = new ChartScales
+            X = new ChartAxis
             {
-                X = new ChartAxis
-                {
-                    Title = new ChartAxesTitle { Text = "Debt Titles", Display = true }
-                },
-                Y = new ChartAxis
-                {
-                    Title = new ChartAxesTitle { Text = "Total Amount", Display = true }
-                }
+                Title = new ChartAxesTitle { Text = "Debt Titles", Display = true }
             },
-            Plugins = new ChartOptionsPlugins
+            Y = new ChartAxis
             {
-                Legend = new ChartLegend { Display = false }
+                Title = new ChartAxesTitle { Text = "Total Amount", Display = true }
             }
-        };*/
+        },
+        Plugins = new ChartOptionsPlugins
+        {
+            Legend = new ChartLegend { Display = false }
+        }
+    };*/
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -414,21 +420,14 @@ else
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    // private void ResetFilters()
-    // {
-        //filteredDebts = new List<UserDebt>(debts);
-        //InitializeBarChart();
-        //StateHasChanged();
-    //}
-
- private void ResetFilters()
+    private void ResetFilters()
     {
         filterStartDate = null;
         filterEndDate = null;
 
-        filteredDebts = new List<UserDebt>(debts); 
+        filteredDebts = new List<UserDebt>(debts);
         InitializeBarChart();
-        StateHasChanged(); 
+        StateHasChanged();
     }
 
 }

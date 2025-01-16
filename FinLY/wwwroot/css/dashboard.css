@@ -448,3 +448,69 @@
         z-index: 1;
     }
 
+
+.debts-section {
+    display: flex;
+    flex-direction: row;
+    gap: 20px; 
+    align-items: flex-start;
+}
+
+.div_pie {
+    flex: 0 0 40%;
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+}
+
+.div_table {
+    flex: 1; 
+    height: 300px; 
+    overflow-y: auto; 
+    border: 1px solid #ddd;
+    padding-right: 10px; 
+    box-sizing: border-box; 
+}
+
+
+.debts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.debts-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .debts-table th,
+    .debts-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    .debts-table th {
+        background-color: #f4f4f4;
+        font-weight: bold;
+    }
+
+.btn {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+}
+
+.own-btn-secondary {
+    background-color: #e7e7e7;
+    color: #333;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+    .own-btn-secondary:hover {
+        background-color: #ccc;
+    }

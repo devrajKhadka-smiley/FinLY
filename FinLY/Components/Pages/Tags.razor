@@ -5,84 +5,88 @@
 @inject ITagsServices TagsServices
 @inject IJSRuntime JSRuntime
 
-<div class="top-nav">
-    <div class="dash-left-side">
-        <p>Welcome, @userName</p>
-    </div>
-    <div class="dash-right-side">
-        <p>@todayDate</p>
-    </div>
-</div>
-
-<div class="tag-container">
-    <div class="header">
-        <button class="add_cat_btn" data-bs-toggle="offcanvas" data-bs-target="#addCategoryOffcanvas" aria-controls="addCategoryOffcanvas">
-            Add Tags
-        </button>
-
+@if (AuthService.IsAuthenticated())
+{
+    <div class="top-nav">
+        <div class="dash-left-side">
+            <p>Welcome, @userName</p>
+        </div>
+        <div class="dash-right-side">
+            <p>@todayDate</p>
+        </div>
     </div>
 
-    <div class="all-tags">
-        <div class="tags-section">
-            <h3>Default Tags</h3>
-            <div class="tags-container">
-                @if (tags.Any()) 
-                {
-                    @foreach (var tag in tags) 
+    <div class="tag-container">
+        <div class="header">
+            <button class="add_cat_btn" data-bs-toggle="offcanvas" data-bs-target="#addCategoryOffcanvas" aria-controls="addCategoryOffcanvas">
+                Add Tags
+            </button>
+
+        </div>
+
+        <div class="all-tags">
+            <div class="tags-section">
+                <h3>Default Tags</h3>
+                <div class="tags-container">
+                    @if (tags.Any())
                     {
-                        @if (!string.IsNullOrEmpty(tag.TagName))
+                        @foreach (var tag in tags)
                         {
-                            <div class="tag-item">
-                                <div class="tag-name">
-                                    @tag.TagName
+                            @if (!string.IsNullOrEmpty(tag.TagName))
+                            {
+                                <div class="tag-item">
+                                    <div class="tag-name">
+                                        @tag.TagName
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(tag.TagType))
+                                    {
+                                        <span class="badge bg-secondary ms-2">@tag.TagType</span>
+                                    }
                                 </div>
-                                @if (!string.IsNullOrEmpty(tag.TagType))
-                                {
-                                    <span class="badge bg-secondary ms-2">@tag.TagType</span>
-                                }
-                            </div>
+                            }
                         }
                     }
-                }
-                else
-                {
-                    <p>No tags are added.</p>
-                }
+                    else
+                    {
+                        <p>No tags are added.</p>
+                    }
+                </div>
+
+
+            </div>
+
+            <div class="custom-section">
+                <h3>Custom Tags</h3>
+                <div class="tags-container">
+                    @if (tags.Any(t => !t.IsDefault))
+                    {
+                        @foreach (var tag in tags.Where(t => !t.IsDefault))
+                        {
+                            @if (!string.IsNullOrEmpty(tag.TagName))
+                            {
+                                <div class="tag-item">
+                                    <div class="tag-name">
+                                        @tag.TagName
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(tag.TagType))
+                                    {
+                                        <span class="badge bg-secondary ms-2">@tag.TagType</span>
+                                    }
+                                </div>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <p>No custom tags are added.</p>
+                    }
+                </div>
             </div>
 
 
         </div>
-
-        <div class="custom-section">
-            <h3>Custom Tags</h3>
-            <div class="tags-container">
-                @if (tags.Any(t => !t.IsDefault)) 
-                    @foreach (var tag in tags.Where(t => !t.IsDefault)) 
-                    {
-                        @if (!string.IsNullOrEmpty(tag.TagName))
-                        {
-                            <div class="tag-item">
-                                <div class="tag-name">
-                                    @tag.TagName
-                                </div>
-                                @if (!string.IsNullOrEmpty(tag.TagType))
-                                {
-                                    <span class="badge bg-secondary ms-2">@tag.TagType</span>
-                                }
-                            </div>
-                        }
-                    }
-                }
-                else
-                {
-                    <p>No custom tags are added.</p>
-                }
-            </div>
-        </div>
-
     </div>
-</div>
-
+}
 <div class="offcanvas offcanvas-end" tabindex="-1" id="addCategoryOffcanvas" aria-labelledby="addCategoryOffcanvasLabel">
     <div class="offcanvas-header">
         <h5 id="addCategoryOffcanvasLabel">Add New Category</h5>

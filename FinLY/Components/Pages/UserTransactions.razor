@@ -7,7 +7,7 @@
 @inject IUserBalanceServicees UserBalawnceServicees
 @inject IJSRuntime jsruntime
 
-   
+
 
 @if (AuthService.IsAuthenticated())
 {
@@ -88,7 +88,7 @@
                             </span>
                         </th>
 
-                        <th>Actions</th>
+                        @* <th>Actions</th> *@
                     </tr>
                 </thead>
                 <tbody>
@@ -103,11 +103,11 @@
                                 <td>@transaction.Tag</td>
                                 <td>@transaction.Note</td>
                                 <td>@transaction.TransactionDate?.ToString("yyyy-MM-dd")</td>
-                                <td>
-                                    <button @onclick="() => EditTransaction(transaction)" class="edit-btn btn btn-warning" data-bs-toggle="offcanvas" data-bs-target="#editTransactionOffcanvas">
-                                        Edit
-                                    </button>
-                                </td>
+                                @* <td> *@
+                                @*     <button @onclick="() => EditTransaction(transaction)" class="edit-btn btn btn-warning" data-bs-toggle="offcanvas" data-bs-target="#editTransactionOffcanvas"> *@
+                                @*         Edit *@
+                                @*     </button> *@
+                                @* </td> *@
                             </tr>
                         }
                     }
@@ -122,61 +122,84 @@
 
         </div>
     </div>
+    @* <div class="transaction_tag"> *@
+    @*     <div class="mb-3"> *@
+    @*         <h3 for="transactionTag" class="form-label">Tag Filters</h3>    *@
+    @*         <div id="transactionTag" class="scrollable-tags"> *@
+    @*             @foreach (var tag in allTags) *@
+    @*             { *@
+    @*                 <div @onclick="() => SetTagSelected(tag.TagName)" *@
+    @*                 class="tag-item @(selectedTag == tag.TagName ? "selected" : "")"> *@
+    @*                     <label for="tag_@tag.TagName">@tag.TagName</label> *@
+    @*                 </div> *@
+    @*             } *@
+    @*         </div> *@
+    @*     </div> *@
+    @* </div> *@
+
     <div class="transaction_tag">
         <div class="mb-3">
-            <h3 for="transactionTag" class="form-label">Tag Filters</h3>   
+            <h3 for="transactionTag" class="form-label">Tag Filters</h3>
             <div id="transactionTag" class="scrollable-tags">
                 @foreach (var tag in allTags)
                 {
-                    <div @onclick="() => SetTagSelected(tag.TagName)"
-                    class="tag-item @(selectedTag == tag.TagName ? "selected" : "")">
-                        <label for="tag_@tag.TagName">@tag.TagName</label>
+                    <div @onclick="() => SetFilterTagSelected(tag.TagName)"
+                    class="tag-item @(selectedFilterTag  == tag.TagName ? "selected" : "")">
+                        <label for="filter_tag_@tag.TagName">@tag.TagName</label>
                     </div>
                 }
             </div>
         </div>
     </div>
 
+
     <!-- Edit Transaction Offcanvas -->
-    <div class="offcanvas offcanvas-end @offcanvasClass" tabindex="-1" id="editTransactionOffcanvas" aria-labelledby="editTransactionOffcanvasLabel">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="editTransactionOffcanvasLabel">Edit Transaction</h5>
-            <button type="button" class="btn-close" @onclick="CloseEditTransactionOffcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body">
-            <form>
-                <div class="mb-3">
-                    <label for="transactionTitle" class="form-label">Transaction Title</label>
-                    <input type="text" @bind="transactionToEdit.TransactionTitle" class="form-control" required />
-                </div>
+    @* <div class="offcanvas offcanvas-end @offcanvasClass" tabindex="-1" id="editTransactionOffcanvas" aria-labelledby="editTransactionOffcanvasLabel"> *@
+    @*     <div class="offcanvas-header"> *@
+    @*         <h5 class="offcanvas-title" id="editTransactionOffcanvasLabel">Edit Transaction</h5> *@
+    @*         <button type="button" class="btn-close" @onclick="CloseEditTransactionOffcanvas" aria-label="Close"></button> *@
+    @*     </div> *@
+    @*     @if (!string.IsNullOrEmpty(errorMessage)) *@
+    @*     { *@
+    @*         <div class="alert alert-danger"> *@
+    @*             @errorMessage *@
+    @*         </div> *@
+    @*     } *@
 
-                <div class="mb-3">
-                    <label for="transactionAmount" class="form-label">Transaction Amount</label>
-                    <input type="number" @bind="transactionToEdit.Amounts" class="form-control" step="0.01" required />
-                </div>
+    @*     <div class="offcanvas-body"> *@
+    @*         <form @onsubmit ="HandleEditTransactionSubmit"> *@
+    @*             <div class="mb-3"> *@
+    @*                 <label for="transactionTitle" class="form-label">Transaction Title</label> *@
+    @*                 <input type="text" @bind="transactionToEdit.TransactionTitle" class="form-control" required /> *@
+    @*             </div> *@
 
-                <div class="mb-3">
-                    <label for="transactionNote" class="form-label">Note (Optional)</label>
-                    <textarea @bind="transactionToEdit.Note" class="form-control" rows="3"></textarea>
-                </div>
+    @*             <div class="mb-3"> *@
+    @*                 <label for="transactionAmount" class="form-label">Transaction Amount</label> *@
+    @*                 <input type="number" @bind="transactionToEdit.Amounts" class="form-control" step="0.01" required /> *@
+    @*             </div> *@
 
-                <div class="mb-3">
-                    <label for="TransactionDate">Transaction Date</label>
-                    <input type="date" @bind="transactionToEdit.TransactionDate" class="form-control" />
-                </div>
+    @*             <div class="mb-3"> *@
+    @*                 <label for="transactionNote" class="form-label">Note (Optional)</label> *@
+    @*                 <textarea @bind="transactionToEdit.Note" class="form-control" rows="3"></textarea> *@
+    @*             </div> *@
 
-                <div class="mb-3">
-                    <label for="transactionTag" class="form-label">Tag</label>
-                    <input type="text" @bind="transactionToEdit.Tag" class="form-control" />
-                </div>
+    @*             <div class="mb-3"> *@
+    @*                 <label for="TransactionDate">Transaction Date</label> *@
+    @*                 <input type="date" @bind="transactionToEdit.TransactionDate" class="form-control" /> *@
+    @*             </div> *@
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CloseEditTransactionOffcanvas">Close</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    @*             <div class="mb-3"> *@
+    @*                 <label for="transactionTag" class="form-label">Tag</label> *@
+    @*                 <input type="text" @bind="transactionToEdit.Tag" class="form-control" /> *@
+    @*             </div> *@
+
+    @*             <div class="modal-footer"> *@
+    @*                 <button type="button" class="btn btn-secondary" @onclick="CloseEditTransactionOffcanvas">Close</button> *@
+    @*                 <button type="submit" class="btn btn-primary">Save Changes</button> *@
+    @*             </div> *@
+    @*         </form> *@
+    @*     </div> *@
+    @* </div> *@
 
 
 
@@ -202,13 +225,13 @@
                                 <label for="transactionType" class="form-label">Transaction Type</label>
                                 <div class="btn-group w-100" role="group">
                                     <button type="button"
-                                            class="btn @(newTransaction.TransactionType == "InFlow" ? "btn-toggle" : "btn-untoggle")"
-                                            @onclick='() => SetTransactionType("InFlow")'>
+                                    class="btn @(newTransaction.TransactionType == "InFlow" ? "btn-toggle" : "btn-untoggle")"
+                                    @onclick='() => SetTransactionType("InFlow")'>
                                         InFlow
                                     </button>
                                     <button type="button"
-                                            class="btn @(newTransaction.TransactionType == "OutFlow" ? "btn-toggle" : "btn-untoggle")"
-                                            @onclick='() => SetTransactionType("OutFlow")'>
+                                    class="btn @(newTransaction.TransactionType == "OutFlow" ? "btn-toggle" : "btn-untoggle")"
+                                    @onclick='() => SetTransactionType("OutFlow")'>
                                         OutFlow
                                     </button>
                                 </div>
@@ -293,6 +316,8 @@
     private DateTime? filterEndDate;
     private bool isTypeSortedAscending = false; 
     private string currencyType;
+    private string selectedFilterTag;
+
 
 
     private List<Models.Tags> allTags = new List<Models.Tags>();
@@ -326,8 +351,6 @@
             Console.WriteLine($"Error initializing data: {ex.Message}");
         }
     }
-
-
 
     private void OpenAddTransactionModal()
     {
@@ -364,12 +387,17 @@
 
             await UserBalawnceServicees.UpdateUserBalanceAsync(newTransaction.UserId, newTransaction.Amounts, newTransaction.TransactionType);
 
+            await LoadUserData(newTransaction.UserId);
+
             newTransaction = new UserTransaction
                 {
-                    UserId = AuthService.GetAuthenticatedUser()?.UserId ?? Guid.Empty
+                    UserId = AuthService.GetAuthenticatedUser()?.UserId ?? Guid.Empty,
+                    TransactionType = "InFlow"
                 };
 
+
             isModalOpen = false;
+            StateHasChanged();
         }
         catch (Exception ex)
         {
@@ -377,6 +405,15 @@
             isSuccess = false;
             Console.WriteLine($"Error adding transaction: {ex.Message}");
         }
+    }
+
+    private async Task LoadUserData(Guid userId)
+    {
+        userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(userId);
+
+        filteredTransactions = new List<UserTransaction>(userTransactions);
+
+        userBalance = await UserBalawnceServicees.GetUserBalanceAsync(userId);
     }
 
     private void SetTransactionType(string transactionType)
@@ -391,53 +428,70 @@
         return selectedTag == tagName ? "selected" : "";
     }
 
-    private void EditTransaction(UserTransaction transaction)
-    {
-        transactionToEdit = new UserTransaction
-            {
-                TransactionTitle = transaction.TransactionTitle,
-                Amounts = transaction.Amounts,
-                Note = transaction.Note,
-                TransactionDate = transaction.TransactionDate,
-                Tag = transaction.Tag,
-                UserId = transaction.UserId,
-                TransactionType = transaction.TransactionType
-            };
+    // private void EditTransaction(UserTransaction transaction)
+    // {
+    //     transactionToEdit = new UserTransaction
+    //         {
+    //             TransactionTitle = transaction.TransactionTitle,
+    //             Amounts = transaction.Amounts,
+    //             Note = transaction.Note,
+    //             TransactionDate = transaction.TransactionDate,
+    //             Tag = transaction.Tag,
+    //             UserId = transaction.UserId,
+    //             TransactionType = transaction.TransactionType
+    //         };
 
-        isOffcanvasOpen = true;
-    }
-
-
-    private void CloseEditTransactionOffcanvas()
-    {
-        isOffcanvasOpen = false;
-        StateHasChanged();
-    }
-
-    private async Task HandleEditTransactionSubmit()
-    {
-        try
-        {
-            await UserTransactionService.UpdateTransactionAsync(transactionToEdit); 
-
-            userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(transactionToEdit.UserId);
-
-            CloseEditTransactionOffcanvas(); 
-            StateHasChanged();
+    //     isOffcanvasOpen = true;
+    // }
 
 
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error updating transaction: {ex.Message}");
-        }
-    }
+    // private void CloseEditTransactionOffcanvas()
+    // {
+    //     isOffcanvasOpen = false;
+    //     transactionToEdit = new UserTransaction(); 
+    //     StateHasChanged();
+    // }
+
+    // private async Task HandleEditTransactionSubmit()
+    // {
+    //     try
+    //     {
+    //         if (string.IsNullOrEmpty(transactionToEdit.TransactionTitle) || transactionToEdit.Amounts <= 0 || transactionToEdit.TransactionDate == null || string.IsNullOrEmpty(transactionToEdit.Tag))
+    //         {
+    //             errorMessage = "Please fill in all required fields!";
+    //             return;
+    //         }
+
+    //         errorMessage = string.Empty;
+
+    //         Update the transaction
+    //         await UserTransactionService.UpdateTransactionAsync(transactionToEdit);
+
+    //         Refresh the transactions
+    //         userTransactions = await UserTransactionService.GetTransactionsByUserIdAsync(transactionToEdit.UserId);
+    //         filteredTransactions = new List<UserTransaction>(userTransactions);
+
+    //         Close the offcanvas
+    //         CloseEditTransactionOffcanvas();
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         errorMessage = $"Error updating transaction: {ex.Message}";
+    //         Console.WriteLine(errorMessage);
+    //     }
+    //     finally
+    //     {
+    //         Ensure the UI updates regardless of the outcome
+    //         StateHasChanged();
+    //     }
+    // }
+
 
     private void ApplyFilters()
     {
         filteredTransactions = userTransactions
             .Where(t =>
-                (string.IsNullOrEmpty(selectedTag) || t.Tag == selectedTag) &&
+                (string.IsNullOrEmpty(selectedFilterTag) || t.Tag == selectedFilterTag) &&
                 (string.IsNullOrEmpty(searchQuery) || t.TransactionTitle.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
                 (!filterStartDate.HasValue || t.TransactionDate >= filterStartDate) &&
                 (!filterEndDate.HasValue || t.TransactionDate <= filterEndDate))
@@ -478,6 +532,13 @@
         ApplyFilters();
     }
 
+    private void SetFilterTagSelected(string tagName)
+    {
+        selectedFilterTag = selectedFilterTag == tagName ? string.Empty : tagName;
+        StateHasChanged();
+        ApplyFilters();
+    }
+
 
     private void OnSearchQueryChanged(ChangeEventArgs e)
     {
@@ -506,7 +567,7 @@
     {
         searchQuery = string.Empty;
 
-        selectedTag = string.Empty;
+        selectedFilterTag = string.Empty;
 
         filterStartDate = null;
         filterEndDate = null;
@@ -568,4 +629,4 @@
     }
 }
 
-}
+
