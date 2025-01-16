@@ -413,7 +413,7 @@
 .transaction-view-buttons .btn:hover {
     background-color: #264267; 
     color: white;
-    border: 2px solid white; /* Change border on hover */
+    border: 2px solid white; 
 }
 
 
