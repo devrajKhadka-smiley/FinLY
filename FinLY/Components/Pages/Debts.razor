@@ -120,7 +120,7 @@
                             <input type="number" @bind="newUserDebt.PaidAmount" class="form-control" required />
 
                             <label>Due Date:</label>
-                            <input type="date" @bind="newUserDebt.DueDate" class="form-control" required />
+                            <input type="date" @bind="newUserDebt.DueDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control" required />
 
                             <label>Source From:</label>
                             <input type="text" @bind="newUserDebt.SourceFrom" class="form-control" required />
@@ -136,36 +136,36 @@
         </div>
 
         <!-- Offcanvas for editing debt -->
-        <div class="offcanvas offcanvas-end @((isEditDebtVisible) ? "show" : "")" tabindex="-1" id="editDebtOffcanvas" aria-labelledby="editDebtOffcanvasLabel" style="display: @(isEditDebtVisible ? "block" : "none")">
-            <div class="offcanvas-header">
-                <h5 id="editDebtOffcanvasLabel">Edit Debt</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" @onclick="HideEditDebtOffcanvas" aria-label="Close"></button>
-            </div>
-            <div class="offcanvas-body">
-                <form @onsubmit="HandleEditSubmit">
-                    <label>Debt Title:</label>
-                    <input type="text" @bind="debtToEdit.DebtTitle" class="form-control" required />
+        @* <div class="offcanvas offcanvas-end @((isEditDebtVisible) ? "show" : "")" tabindex="-1" id="editDebtOffcanvas" aria-labelledby="editDebtOffcanvasLabel" style="display: @(isEditDebtVisible ? "block" : "none")"> *@
+        @*     <div class="offcanvas-header"> *@
+        @*         <h5 id="editDebtOffcanvasLabel">Edit Debt</h5> *@
+        @*         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" @onclick="HideEditDebtOffcanvas" aria-label="Close"></button> *@
+        @*     </div> *@
+        @*     <div class="offcanvas-body"> *@
+        @*         <form @onsubmit="HandleEditSubmit"> *@
+        @*             <label>Debt Title:</label> *@
+        @*             <input type="text" @bind="debtToEdit.DebtTitle" class="form-control" required /> *@
 
-                    <label>Total Debt Amount:</label>
-                    <input type="number" @bind="debtToEdit.TotalDebtAmount" class="form-control" required />
+        @*             <label>Total Debt Amount:</label> *@
+        @*             <input type="number" @bind="debtToEdit.TotalDebtAmount" class="form-control" required /> *@
 
-                    <label>Paid Amount:</label>
-                    <input type="number" @bind="debtToEdit.PaidAmount" class="form-control" required />
+        @*             <label>Paid Amount:</label> *@
+        @*             <input type="number" @bind="debtToEdit.PaidAmount" class="form-control" required /> *@
 
-                    <label>Due Date:</label>
-                    <input type="date" @bind="debtToEdit.DueDate" class="form-control" required />
+        @*             <label>Due Date:</label> *@
+        @*             <input type="date" @bind="debtToEdit.DueDate" class="form-control" required /> *@
 
-                    <label>Source From:</label>
-                    <input type="text" @bind="debtToEdit.SourceFrom" class="form-control" required />
+        @*             <label>Source From:</label> *@
+        @*             <input type="text" @bind="debtToEdit.SourceFrom" class="form-control" required /> *@
 
-                    <label>Note:</label>
-                    <textarea @bind="debtToEdit.Note" class="form-control" rows="3"></textarea>
+        @*             <label>Note:</label> *@
+        @*             <textarea @bind="debtToEdit.Note" class="form-control" rows="3"></textarea> *@
 
-                    <button type="submit" class="btn btn-success">Save Changes</button>
-                    <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
-                </form>
-            </div>
-        </div>
+        @*             <button type="submit" class="btn btn-success">Save Changes</button> *@
+        @*             <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button> *@
+        @*         </form> *@
+        @*     </div> *@
+        @* </div> *@
     </div>
 
 }

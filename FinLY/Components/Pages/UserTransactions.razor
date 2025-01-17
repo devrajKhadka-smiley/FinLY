@@ -264,8 +264,9 @@
 
                         <div class="mb-3">
                             <label for="TransactionDate">Transaction Date</label>
-                            <input type="date" id="TransactionDate" class="form-control" @bind="newTransaction.TransactionDate" />
+                            <input type="date" id="TransactionDate" class="form-control" @bind="newTransaction.TransactionDate" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
                         </div>
+
 
                         <div class="mb-3">
                             <label for="transactionTag" class="form-label">Tag</label>

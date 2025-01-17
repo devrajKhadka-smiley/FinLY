@@ -17,10 +17,10 @@ namespace FinLY.Models
         public string Currency { get; set; } = string.Empty;
 
 
-        public decimal AvailableBalance { get; set; } = 0;
-        public decimal TotalCashInFlow { get; set; } = 0;
-        public decimal TotalCashOutFlow { get; set; } = 0;
-        public decimal TotalDebtAmount { get; set; } = 0;
-        public decimal AvailableBalancewithDebt { get; set; } = 0;
+        //public decimal AvailableBalance { get; set; } = 0;
+        //public decimal TotalCashInFlow { get; set; } = 0;
+        //public decimal TotalCashOutFlow { get; set; } = 0;
+        //public decimal TotalDebtAmount { get; set; } = 0;
+        //public decimal AvailableBalancewithDebt { get; set; } = 0;
     }
 }
