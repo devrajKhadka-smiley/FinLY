@@ -8,9 +8,31 @@ using System.Threading.Tasks;
 
 namespace FinLY.Services
 {
+    //here usertransactionserive is inherited from IUserTransactionServices
+    //usertransactionserice hides the details of how transaction are stored and retrieved
     public class UserTransactionsServices : IUserTransactionServices
     {
-        private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseUserTransactions.json");
+
+
+        //private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseUserTransactions.json");
+        private static string GetTagFilePath()
+        {
+            string FinLYDocumentPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            // Define the folder where the file will be stored
+            string FinLYDatabaseFolder = Path.Combine(FinLYDocumentPath, "FinLY Database");
+
+            // Create the directory if it does not exist
+            if (!Directory.Exists(FinLYDatabaseFolder))
+            {
+                Directory.CreateDirectory(FinLYDatabaseFolder);
+            }
+
+            // Return the full file path for the JSON file
+            //return Path.Combine(FinLYDatabaseFolder, "FinLYDatabaseUserTransactions.json");
+            return Path.Combine(FinLYDatabaseFolder, "Transaction Database.json");
+        }
+
 
         public async Task AddTransactionAsync(UserTransaction transaction)
         {
@@ -33,12 +55,14 @@ namespace FinLY.Services
         {
             try
             {
-                if (!File.Exists(FinLyFilePath))
+                string FinLYTransactionFilePath = GetTagFilePath();
+
+                if (!File.Exists(FinLYTransactionFilePath))
                 {
                     return new List<UserTransaction>();
                 }
 
-                var json = await File.ReadAllTextAsync(FinLyFilePath);
+                var json = await File.ReadAllTextAsync(FinLYTransactionFilePath);
                 return JsonSerializer.Deserialize<List<UserTransaction>>(json) ?? new List<UserTransaction>();
             }
             catch (Exception ex)
@@ -66,8 +90,11 @@ namespace FinLY.Services
         {
             try
             {
+                string FinLYTransactionFilePath = GetTagFilePath();
+
+
                 var json = JsonSerializer.Serialize(transactions, new JsonSerializerOptions { WriteIndented = true });
-                await File.WriteAllTextAsync(FinLyFilePath, json);
+                await File.WriteAllTextAsync(FinLYTransactionFilePath, json);
             }
             catch (Exception ex)
             {

@@ -39,7 +39,7 @@
 
             <div class="search d-flex align-items-center">
                 <input type="text" class="search-input form-control" placeholder="Find Transaction by Title..."
-                @oninput="OnSearchQueryChanged" />
+                       @oninput="OnSearchQueryChanged" />
                 <button class="      btn btn-outline-secondary" @onclick="ClearSearch">
                     <i class="bi bi-x-circle"></i>
                 </button>
@@ -62,11 +62,11 @@
                             <span class="bi" style="cursor: pointer;" @onclick="SortByType">
                                 @if (isTypeSortedAscending)
                                 {
-                                    <i class="bi-caret-up-fill"></i> 
+                                    <i class="bi-caret-up-fill"></i>
                                 }
                                 else
                                 {
-                                    <i class="bi-caret-down-fill"></i> 
+                                    <i class="bi-caret-down-fill"></i>
                                 }
                             </span>
                         </th>
@@ -79,11 +79,11 @@
                             <span class="bi" style="cursor: pointer;" @onclick="SortByDate">
                                 @if (isSortedAscending)
                                 {
-                                    <i class="bi-caret-up-fill"></i> 
+                                    <i class="bi-caret-up-fill"></i>
                                 }
                                 else
                                 {
-                                    <i class="bi-caret-down-fill"></i> 
+                                    <i class="bi-caret-down-fill"></i>
                                 }
                             </span>
                         </th>
@@ -122,20 +122,6 @@
 
         </div>
     </div>
-    @* <div class="transaction_tag"> *@
-    @*     <div class="mb-3"> *@
-    @*         <h3 for="transactionTag" class="form-label">Tag Filters</h3>    *@
-    @*         <div id="transactionTag" class="scrollable-tags"> *@
-    @*             @foreach (var tag in allTags) *@
-    @*             { *@
-    @*                 <div @onclick="() => SetTagSelected(tag.TagName)" *@
-    @*                 class="tag-item @(selectedTag == tag.TagName ? "selected" : "")"> *@
-    @*                     <label for="tag_@tag.TagName">@tag.TagName</label> *@
-    @*                 </div> *@
-    @*             } *@
-    @*         </div> *@
-    @*     </div> *@
-    @* </div> *@
 
     <div class="transaction_tag">
         <div class="mb-3">
@@ -144,7 +130,7 @@
                 @foreach (var tag in allTags)
                 {
                     <div @onclick="() => SetFilterTagSelected(tag.TagName)"
-                    class="tag-item @(selectedFilterTag  == tag.TagName ? "selected" : "")">
+                         class="tag-item @(selectedFilterTag  == tag.TagName ? "selected" : "")">
                         <label for="filter_tag_@tag.TagName">@tag.TagName</label>
                     </div>
                 }
@@ -225,13 +211,13 @@
                                 <label for="transactionType" class="form-label">Transaction Type</label>
                                 <div class="btn-group w-100" role="group">
                                     <button type="button"
-                                    class="btn @(newTransaction.TransactionType == "InFlow" ? "btn-toggle" : "btn-untoggle")"
-                                    @onclick='() => SetTransactionType("InFlow")'>
+                                            class="btn @(newTransaction.TransactionType == "InFlow" ? "btn-toggle" : "btn-untoggle")"
+                                            @onclick='() => SetTransactionType("InFlow")'>
                                         InFlow
                                     </button>
                                     <button type="button"
-                                    class="btn @(newTransaction.TransactionType == "OutFlow" ? "btn-toggle" : "btn-untoggle")"
-                                    @onclick='() => SetTransactionType("OutFlow")'>
+                                            class="btn @(newTransaction.TransactionType == "OutFlow" ? "btn-toggle" : "btn-untoggle")"
+                                            @onclick='() => SetTransactionType("OutFlow")'>
                                         OutFlow
                                     </button>
                                 </div>
@@ -239,7 +225,7 @@
 
                             <div class="mb-3">
                                 <label for="transactionTitle" class="form-label">Transaction Title</label>
-                                <input type="text" @bind="newTransaction.TransactionTitle" id="transactionTitle" class="form-control" placeholder="Enter a title for the transaction" required />
+                                    <input type="text" @bind="newTransaction.TransactionTitle" id="transactionTitle" class="form-control" placeholder="Enter a title for the transaction" required />
                             </div>
 
                             <div class="mb-3">
@@ -274,16 +260,12 @@
                                 @foreach (var tag in allTags)
                                 {
                                     <div @onclick="() => SetTagSelected(tag.TagName)"
-                                    class="tag-item @(selectedTag == tag.TagName ? "selected" : "")">
+                                         class="tag-item @(selectedTag == tag.TagName ? "selected" : "")">
                                         <label for="tag_@tag.TagName">@tag.TagName</label>
                                     </div>
                                 }
                             </div>
                         </div>
-
-
-
-
                         <div class="modal-footer custom-modal-footer">
                             <button type="button" class="btn btn-secondary" @onclick="CloseAddTransactionModal">Close</button>
                             <button type="submit" @onclick="HandleSubmit" class="add-btn btn ">Add Transaction</button>
@@ -308,14 +290,14 @@
     private string modalClass => isModalOpen ? "show d-block" : "fade";
     private UserBalance userBalance = new UserBalance();
     private string offcanvasClass => isOffcanvasOpen ? "show" : "";
-    private bool isOffcanvasOpen = false; 
+    private bool isOffcanvasOpen = false;
     private string errorMessage;
     private List<UserTransaction> filteredTransactions = new List<UserTransaction>();
-    private string searchQuery = string.Empty; 
-    private bool isSortedAscending = false; 
+    private string searchQuery = string.Empty;
+    private bool isSortedAscending = false;
     private DateTime? filterStartDate;
     private DateTime? filterEndDate;
-    private bool isTypeSortedAscending = false; 
+    private bool isTypeSortedAscending = false;
     private string currencyType;
     private string selectedFilterTag;
 
@@ -360,7 +342,7 @@
 
     private void CloseAddTransactionModal()
     {
-        isModalOpen = false; 
+        isModalOpen = false;
     }
 
     private async Task HandleSubmit()
@@ -449,7 +431,7 @@
     // private void CloseEditTransactionOffcanvas()
     // {
     //     isOffcanvasOpen = false;
-    //     transactionToEdit = new UserTransaction(); 
+    //     transactionToEdit = new UserTransaction();
     //     StateHasChanged();
     // }
 
@@ -511,7 +493,7 @@
             filteredTransactions = filteredTransactions.OrderByDescending(t => t.TransactionDate).ToList();
         }
 
-        StateHasChanged(); 
+        StateHasChanged();
     }
 
 
@@ -529,7 +511,7 @@
             filteredTransactions = userTransactions.Where(t => t.Tag == selectedTag).ToList();
         }
 
-        StateHasChanged(); 
+        StateHasChanged();
         ApplyFilters();
     }
 
@@ -554,12 +536,14 @@
         ApplyFilters();
     }
 
-    private void FilterStartDate(ChangeEventArgs e) {
+    private void FilterStartDate(ChangeEventArgs e)
+    {
         filterStartDate = DateTime.TryParse(e.Value?.ToString(), out var date) ? date : null;
         ApplyFilters();
     }
 
-    private void FilterEndDate(ChangeEventArgs e) {
+    private void FilterEndDate(ChangeEventArgs e)
+    {
         filterEndDate = DateTime.TryParse(e.Value?.ToString(), out var date) ? date : null;
         ApplyFilters();
     }
@@ -586,7 +570,7 @@
             ? filteredTransactions.OrderBy(t => t.TransactionDate).ToList()
             : filteredTransactions.OrderByDescending(t => t.TransactionDate).ToList();
 
-        StateHasChanged(); 
+        StateHasChanged();
     }
 
     private void SortByType()
@@ -597,7 +581,7 @@
             ? filteredTransactions.OrderBy(t => t.TransactionType).ToList()
             : filteredTransactions.OrderByDescending(t => t.TransactionType).ToList();
 
-        StateHasChanged(); 
+        StateHasChanged();
     }
 
     private async Task ExportAsCsv()

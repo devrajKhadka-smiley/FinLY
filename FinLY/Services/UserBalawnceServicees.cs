@@ -12,7 +12,26 @@ namespace FinLY.Services
 {
     public class UserBalawnceServicees : IUserBalanceServicees
     {
-        private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseUserBalance.json");
+        private static string GetTagFilePath()
+        {
+            string FinLYDocumentPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            // Define the folder where the file will be stored
+            string FinLYDatabaseFolder = Path.Combine(FinLYDocumentPath, "FinLY Database");
+
+            // Create the directory if it does not exist
+            if (!Directory.Exists(FinLYDatabaseFolder))
+            {
+                Directory.CreateDirectory(FinLYDatabaseFolder);
+            }
+
+            // Return the full file path for the JSON file
+            //return Path.Combine(FinLYDatabaseFolder, "FinLYDatabaseUserBalance.json");
+            return Path.Combine(FinLYDatabaseFolder, "User Balance Database.json");
+        }
+
+
+        //private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseUserBalance.json");
         private readonly IDebtsServices debtsServices;
         private readonly IUserBalanceServicees userBalanceServicees;
 
@@ -90,24 +109,31 @@ namespace FinLY.Services
             if (debts == null || !debts.Any())
                 return 0;
 
-            return debts.Where(d => d.DebtStatus != "Paid").Sum(d => d.TotalDebtAmount);
+            //return debts.Where(d => d.DebtStatus != "Paid").Sum(d => d.TotalDebtAmount);
+            return debts.Where(d => d.DebtStatus == "Pending" || d.DebtStatus == "Paid")
+               .Sum(d => d.TotalDebtAmount);
         }
 
         private async Task<List<UserBalance>> LoadAllBalancesAsync()
         {
-            if (!File.Exists(FinLyFilePath))
+            string userBalanceFilePath = GetTagFilePath();
+
+            if (!File.Exists(userBalanceFilePath))
             {
                 return new List<UserBalance>();
             }
 
-            var json = await File.ReadAllTextAsync(FinLyFilePath);
+            var json = await File.ReadAllTextAsync(userBalanceFilePath);
             return JsonSerializer.Deserialize<List<UserBalance>>(json) ?? new List<UserBalance>();
         }
 
         private async Task SaveAllBalancesAsync(List<UserBalance> balances)
         {
+            string userBalanceFilePath = GetTagFilePath();
+
+
             var json = JsonSerializer.Serialize(balances, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(FinLyFilePath, json);
+            await File.WriteAllTextAsync(userBalanceFilePath, json);
         }
 
         public async Task UpdateTotalClearedDebtAmountAsync(Guid userId, decimal totalClearedDebtAmount)

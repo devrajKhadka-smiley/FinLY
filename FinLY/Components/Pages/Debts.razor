@@ -22,12 +22,6 @@
     <div>
         <div class="debt_container">
             <div class="debt_header">
-                @if (!string.IsNullOrEmpty(ErrorMessage))
-                {
-                    <div class="alert alert-danger">
-                        @ErrorMessage
-                    </div>
-                }
                 <h1 class="debt_title">Debts</h1>
                 <button class="debt_button" @onclick="ShowAddDebtModal">Add Debts</button>
             </div>
@@ -52,6 +46,7 @@
             <div class="table-container">
                 <table class="table">
                     <thead>
+
                         <tr>
                             <th>Debt Title</th>
                             <th>Total Debt Amount</th>
@@ -82,15 +77,13 @@
                                 <td>@debt.Note</td>
                                 <td>@debt.DebtStatus</td>
                                 <td>
-                                    @* <button class="edit-btn btn btn-warning" @onclick="() => ShowEditDebtOffcanvas(debt)">Edit</button> *@
-
                                     @if (debt.DebtStatus != "Paid")
                                     {
                                         <button class="edit-btn btn-primary" @onclick="() => PayDebt(debt)">
-                                            <i class="bi bi-cash me-2"></i> 
+                                            <i class="bi bi-cash me-2"></i>
                                         </button>
                                     }
-
+                                        
                                 </td>
                             </tr>
                         }
@@ -108,10 +101,16 @@
                         <h5 class="modal-title" id="addDebtModalLabel">Add New Debt</h5>
                         <button type="button" class="btn-close" @onclick="HideAddDebtModal" aria-label="Close"></button>
                     </div>
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <div class="alert alert-danger">
+                            @ErrorMessage
+                        </div>
+                    }
                     <div class="modal-body">
                         <form @onsubmit="HandleSubmit">
                             <label>Debt Title:</label>
-                            <input type="text" @bind="newUserDebt.DebtTitle" class="form-control" required />
+                            <input type="text" @bind="newUserDebt.DebtTitle" class="form-control" pattern="^[a-zA-Z\s]+$" required />
 
                             <label>Total Debt Amount:</label>
                             <input type="number" @bind="newUserDebt.TotalDebtAmount" class="form-control" required />
@@ -123,7 +122,7 @@
                             <input type="date" @bind="newUserDebt.DueDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control" required />
 
                             <label>Source From:</label>
-                            <input type="text" @bind="newUserDebt.SourceFrom" class="form-control" required />
+                            <input type="text" @bind="newUserDebt.SourceFrom" class="form-control" pattern="^[a-zA-Z\s]+$" required />
 
                             <label>Note:</label>
                             <textarea @bind="newUserDebt.Note" class="form-control" rows="3"></textarea>
@@ -174,15 +173,15 @@
     private string todayDate;
     private UserDebt newUserDebt = new UserDebt();
     private List<UserDebt> allUserDebts = new List<UserDebt>();
-    private UserDebt debtToEdit = new UserDebt(); 
+    private UserDebt debtToEdit = new UserDebt();
     private bool isAddDebtModalVisible = false;
     private bool isEditDebtVisible = false;
     private string ErrorMessage { get; set; } = string.Empty;
-    private bool isSortAscending = true; 
-    private bool isSortStatusAscending = true; 
-    private bool isSortDateAscending = true; 
-    private string searchQuery = string.Empty; 
-    private List<UserDebt> filteredDebts = new List<UserDebt>(); 
+    private bool isSortAscending = true;
+    private bool isSortStatusAscending = true;
+    private bool isSortDateAscending = true;
+    private string searchQuery = string.Empty;
+    private List<UserDebt> filteredDebts = new List<UserDebt>();
     private string currencyType;
 
 
@@ -205,35 +204,48 @@
 
     private async Task HandleSubmit()
     {
-        var user = AuthService.GetAuthenticatedUser();
-        if (user != null)
+        try
         {
-            newUserDebt.UserId = user.UserId;
-            newUserDebt.DebtStatus = "Pending";
-
-            try
+            ErrorMessage = string.Empty;
+            if (newUserDebt.TotalDebtAmount < 1)
             {
-                await debtsServices.AddDebtAsync(newUserDebt);
-
-                decimal totalDebtAmount = newUserDebt.TotalDebtAmount;
-                var allDebts = await debtsServices.GetDebtsByUserIdAsync(user.UserId);
-                totalDebtAmount = allDebts.Sum(debt => debt.TotalDebtAmount);
-
-
-                var userBalance = await userBalanceService.GetUserBalanceAsync(user.UserId);
-                decimal availableBalanceWithDebt = userBalance.AvailableBalance + totalDebtAmount - newUserDebt.PaidAmount;
-                await userBalanceService.UpdateUserBalanceAsync(user.UserId, availableBalanceWithDebt, "Debts");
-
-
-                newUserDebt = new UserDebt();
-                await LoadDebts();
-                HideAddDebtModal();
-
+                ErrorMessage = "Error: Total Debt Amount must be at least 1.";
+                return;
             }
-            catch (Exception ex)
+            var user = AuthService.GetAuthenticatedUser();
+            if (user != null)
             {
-                Console.WriteLine($"Error adding debt: {ex.Message}");
+                newUserDebt.UserId = user.UserId;
+                newUserDebt.DebtStatus = "Pending";
+
+                try
+                {
+                    await debtsServices.AddDebtAsync(newUserDebt);
+
+                    decimal totalDebtAmount = newUserDebt.TotalDebtAmount;
+                    var allDebts = await debtsServices.GetDebtsByUserIdAsync(user.UserId);
+                    totalDebtAmount = allDebts.Sum(debt => debt.TotalDebtAmount);
+
+
+                    var userBalance = await userBalanceService.GetUserBalanceAsync(user.UserId);
+                    decimal availableBalanceWithDebt = userBalance.AvailableBalance + totalDebtAmount - newUserDebt.PaidAmount;
+                    await userBalanceService.UpdateUserBalanceAsync(user.UserId, availableBalanceWithDebt, "Debts");
+
+
+                    newUserDebt = new UserDebt();
+                    await LoadDebts();
+                    HideAddDebtModal();
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error adding debt: {ex.Message}");
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error adding debt: {ex.Message}";
         }
     }
 
@@ -243,7 +255,7 @@
         if (user != null)
         {
             allUserDebts = await debtsServices.GetDebtsByUserIdAsync(user.UserId);
-            ApplyFilters(); 
+            ApplyFilters();
         }
     }
 
@@ -279,7 +291,7 @@
                 await userBalanceService.UpdateTotalClearedDebtAmountAsync(debt.UserId, totalClearedDebtAmount);
                 decimal updatedBalance = userBalance.AvailableBalance - debt.PaidAmount;
 
-                string transactionType = "Debt Payment"; // Example transaction type
+                string transactionType = "Debt Payment";
                 await userBalanceService.UpdateUserBalanceAsync(debt.UserId, updatedBalance, transactionType);
 
 
@@ -305,14 +317,14 @@
                 DebtTitle = debt.DebtTitle,
                 TotalDebtAmount = debt.TotalDebtAmount,
                 PaidAmount = debt.PaidAmount,
-                RemainingAmount = debt.RemainingAmount, 
+                RemainingAmount = debt.RemainingAmount,
                 DueDate = debt.DueDate,
                 SourceFrom = debt.SourceFrom,
                 Note = debt.Note,
                 DebtStatus = debt.DebtStatus
             };
 
-        isEditDebtVisible = true; 
+        isEditDebtVisible = true;
     }
 
     private void HideEditDebtOffcanvas()
@@ -341,7 +353,7 @@
 
                 debtToEdit = null;
                 await LoadDebts();
-                HideEditDebtOffcanvas(); 
+                HideEditDebtOffcanvas();
             }
             else
             {
@@ -358,7 +370,7 @@
     private void CancelEdit()
     {
         debtToEdit = null;
-        HideEditDebtOffcanvas(); 
+        HideEditDebtOffcanvas();
     }
 
     private void ShowAddDebtModal()
@@ -379,14 +391,14 @@
             .ToList();
 
         filteredDebts = isSortDateAscending
-            ? filteredDebts.OrderBy(debt => debt.DueDate).ToList() 
-            : filteredDebts.OrderByDescending(debt => debt.DueDate).ToList(); 
+            ? filteredDebts.OrderBy(debt => debt.DueDate).ToList()
+            : filteredDebts.OrderByDescending(debt => debt.DueDate).ToList();
 
         filteredDebts = isSortStatusAscending
             ? filteredDebts.OrderBy(debt => debt.DebtStatus).ToList()
             : filteredDebts.OrderByDescending(debt => debt.DebtStatus).ToList();
 
-        StateHasChanged(); 
+        StateHasChanged();
     }
 
 
@@ -400,20 +412,20 @@
     private void SortDebtsByStatus()
     {
         isSortStatusAscending = !isSortStatusAscending;
-        ApplyFilters(); 
+        ApplyFilters();
     }
 
     private void OnSearchChanged(ChangeEventArgs e)
     {
-        searchQuery = e.Value.ToString(); 
-        ApplyFilters(); 
+        searchQuery = e.Value.ToString();
+        ApplyFilters();
     }
 
 
     private void ClearSearch()
     {
-        searchQuery = string.Empty; 
-        ApplyFilters(); 
+        searchQuery = string.Empty;
+        ApplyFilters();
     }
 
     private async Task DebtsExportAsCsv()

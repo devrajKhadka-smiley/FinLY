@@ -8,14 +8,42 @@ using FinLY.Services;
 
 namespace FinLY.Services
 {
+    //debt service hides the details of how debts are stored and retrieved
     public class DebtsServices : IDebtsServices
     {
-        private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseDebts.json");
+        //Field Decelaration to save the file path
+
+        private static string GetUserFilePath()
+        {
+            string FinLYDocumentPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            // Define the folder where the file will be stored
+            string FinLYDatabaseFolder = Path.Combine(FinLYDocumentPath, "FinLY Database");
+
+            // Create the directory if it does not exist
+            if (!Directory.Exists(FinLYDatabaseFolder))
+            {
+                Directory.CreateDirectory(FinLYDatabaseFolder);
+            }
+
+            // Return the full file path for the JSON file
+            //return Path.Combine(FinLYDatabaseFolder, "FinLYDatabaseDebts.json");
+            return Path.Combine(FinLYDatabaseFolder, "Debts Database.json");
+        }
+
+
+        //private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseDebts.json");
+        private readonly IUserTransactionServices _transactionService;
+        public DebtsServices(IUserTransactionServices transactionService)
+        {
+            _transactionService = transactionService;
+        }
 
         public async Task AddDebtAsync(UserDebt debt)
         {
             try
             {
+
                 var debts = await LoadDebtsAsync();
                 debt.Id = Guid.NewGuid();
                 debt.RemainingAmount = debt.TotalDebtAmount - debt.PaidAmount;
@@ -96,12 +124,14 @@ namespace FinLY.Services
         {
             try
             {
-                if (!System.IO.File.Exists(FinLyFilePath))
+                string databaseFilePath = GetUserFilePath();
+
+                if (!System.IO.File.Exists(databaseFilePath))
                 {
                     return new List<UserDebt>();
                 }
 
-                var json = await System.IO.File.ReadAllTextAsync(FinLyFilePath);
+                var json = await System.IO.File.ReadAllTextAsync(databaseFilePath);
                 return System.Text.Json.JsonSerializer.Deserialize<List<UserDebt>>(json) ?? new List<UserDebt>();
             }
             catch (Exception ex)
@@ -115,8 +145,11 @@ namespace FinLY.Services
         {
             try
             {
+                string databaseFilePath = GetUserFilePath();
+
+                // Serialization: Convert the list of UserDebt objects into JSON and save it to the file
                 var json = System.Text.Json.JsonSerializer.Serialize(debts, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                await System.IO.File.WriteAllTextAsync(FinLyFilePath, json);
+                await System.IO.File.WriteAllTextAsync(databaseFilePath, json);
             }
             catch (Exception ex)
             {
@@ -124,18 +157,25 @@ namespace FinLY.Services
             }
         }
 
+
         private async Task<decimal> CalculateTotalDebtAmount(Guid userId)
         {
-            var debtsServices = new DebtsServices(); 
+            IUserTransactionServices transactionService = new UserTransactionsServices();
+
+            var debtsServices = new DebtsServices(transactionService);
 
             var userDebts = await debtsServices.GetDebtsByUserIdAsync(userId);
 
             if (userDebts == null || !userDebts.Any())
             {
-                return 0; 
+                return 0;
             }
 
-            decimal totalDebtAmount = userDebts.Sum(debt => debt.TotalDebtAmount);
+            //decimal totalDebtAmount = userDebts.Sum(debt => debt.TotalDebtAmount);
+            decimal totalDebtAmount = userDebts
+        .Where(debt => debt.DebtStatus == "Pending" || debt.DebtStatus == "Paid")
+        .Sum(debt => debt.TotalDebtAmount);
+
 
             return totalDebtAmount;
         }

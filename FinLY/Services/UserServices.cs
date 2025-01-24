@@ -12,10 +12,30 @@ namespace FinLY.Services
 {
     public class UserServices : IUserServices
     {
-        private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabase.json");
+        private static string GetTagFilePath()
+        {
+            string FinLYDocumentPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            // Define the folder where the file will be stored
+            string FinLYDatabaseFolder = Path.Combine(FinLYDocumentPath, "FinLY Database");
+
+            // Create the directory if it does not exist
+            if (!Directory.Exists(FinLYDatabaseFolder))
+            {
+                Directory.CreateDirectory(FinLYDatabaseFolder);
+            }
+
+            // Return the full file path for the JSON file
+            //return Path.Combine(FinLYDatabaseFolder, "FinLYUserDatabase.json");
+            return Path.Combine(FinLYDatabaseFolder, "User Database.json");
+        }
+
+        //private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabase.json");
 
         public async Task SaveUserAsync(Users user)
         {
+            string finlyUserFilePath = GetTagFilePath();
+
             List<Users> users = await LoadUsersAsync();
 
             user.UserId = Guid.NewGuid();  
@@ -25,7 +45,7 @@ namespace FinLY.Services
 
             var jsonString = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
 
-            await File.WriteAllTextAsync(FinLyFilePath, jsonString);
+            await File.WriteAllTextAsync(finlyUserFilePath, jsonString);
         }
 
         private string HashPassword(string password)
@@ -40,12 +60,14 @@ namespace FinLY.Services
 
         public async Task<List<Users>> LoadUsersAsync()
         {
-            if (!File.Exists(FinLyFilePath))
+            string finlyUserFilePath = GetTagFilePath();
+
+            if (!File.Exists(finlyUserFilePath))
             {
                 return new List<Users>();
             }
 
-            var jsonString = await File.ReadAllTextAsync(FinLyFilePath);
+            var jsonString = await File.ReadAllTextAsync(finlyUserFilePath);
             var users = JsonSerializer.Deserialize<List<Users>>(jsonString);
 
             return users ?? new List<Users>();
@@ -74,11 +96,6 @@ namespace FinLY.Services
                 {
                     existingUser.UserName = user.UserName;
                     existingUser.Currency = user.Currency;
-                    //existingUser.AvailableBalance = user.AvailableBalance;
-                    //existingUser.TotalCashInFlow = user.TotalCashInFlow;
-                    //existingUser.TotalCashOutFlow = user.TotalCashOutFlow;
-                    //existingUser.TotalDebtAmount = user.TotalDebtAmount;
-                    //existingUser.AvailableBalancewithDebt = user.AvailableBalancewithDebt;
 
                     await SaveUsersAsync(users);
                 }
@@ -96,8 +113,10 @@ namespace FinLY.Services
 
         private async Task SaveUsersAsync(List<Users> users)
         {
+            string finlyUserFilePath = GetTagFilePath();
+
             var jsonString = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(FinLyFilePath, jsonString);
+            await File.WriteAllTextAsync(finlyUserFilePath, jsonString);
         }
 
         public async Task<Users> GetUserByIdAsync(Guid userId)

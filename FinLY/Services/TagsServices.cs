@@ -11,7 +11,26 @@ namespace FinLY.Services
 {
     public class TagsServices : ITagsServices
     {
-        private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseTags.json");
+        //private readonly string FinLyFilePath = Path.Combine(AppContext.BaseDirectory, "FinLYDatabaseTags.json");
+
+        private static string GetTagFilePath()
+        {
+            string FinLYDocumentPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            // Define the folder where the file will be stored
+            string FinLYDatabaseFolder = Path.Combine(FinLYDocumentPath, "FinLY Database");
+
+            // Create the directory if it does not exist
+            if (!Directory.Exists(FinLYDatabaseFolder))
+            {
+                Directory.CreateDirectory(FinLYDatabaseFolder);
+            }
+
+            // Return the full file path for the JSON file
+            //return Path.Combine(FinLYDatabaseFolder, "FinLYDatabaseTags.json");
+            return Path.Combine(FinLYDatabaseFolder, "Tags Database.json");
+        }
+
 
         public async Task AddCustomTagAsync(Models.Tags tag)
         {
@@ -41,8 +60,10 @@ namespace FinLY.Services
         {
             try
             {
+                string finLYTagFilePath = GetTagFilePath();
+
                 var json = JsonSerializer.Serialize(tags, new JsonSerializerOptions { WriteIndented = true }); 
-                await File.WriteAllTextAsync(FinLyFilePath, json);
+                await File.WriteAllTextAsync(finLYTagFilePath, json);
             }
             catch(Exception ex)
             {
@@ -55,12 +76,14 @@ namespace FinLY.Services
         {
             try
             {
-                if(!File.Exists(FinLyFilePath))
+                string finLYTagFilePath = GetTagFilePath();
+
+                if (!File.Exists(finLYTagFilePath))
                 {
                     return new List<Models.Tags>();
                 }
 
-                var json = await File.ReadAllTextAsync(FinLyFilePath);
+                var json = await File.ReadAllTextAsync(finLYTagFilePath);
                 return JsonSerializer.Deserialize<List<Models.Tags>>(json) ?? new List<Models.Tags>();
             }
             catch (Exception ex) 

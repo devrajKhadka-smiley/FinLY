@@ -45,6 +45,25 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="_content/Blazor.Bootstrap/blazor.bootstrap.js"></script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const errorUi = document.getElementById('blazor-error-ui');
+
+            if (errorUi) {
+                const observer = new MutationObserver(() => {
+                    if (getComputedStyle(errorUi).display !== 'none') {
+                        console.warn('Unhandled error occurred. Reloading the page...');
+                        window.location.reload();
+                    }
+                });
+
+                observer.observe(errorUi, { attributes: true, attributeFilter: ['style'] });
+            }
+        });
+    </script>
+
+
+
 </body>
 
 </html>
